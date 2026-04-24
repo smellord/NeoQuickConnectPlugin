@@ -32,6 +32,8 @@ namespace QuickConnectPlugin {
         private const String OpenRemoteDesktopMenuItemText = "Open Remote Desktop";
         private const String OpenRemoteDesktopConsoleMenuItemText = "Open Remote Desktop (console)";
         private const String OpenVSphereClientMenuItemText = "Open vSphere Client";
+        private const String OpenWindowsTerminalSshMenuItemText = "Open Windows Terminal (SSH)";
+        private const String OpenWindowsTerminalPlinkMenuItemText = "Open Windows Terminal (plink)";
         private const String OpenPuttyMenuItemText = "Open PuTTY";
         private const String OpenWinScpMenuItemText = "Open WinSCP";
         private const String ChangePasswordMenuItemText = "Change Password...";
@@ -139,13 +141,16 @@ namespace QuickConnectPlugin {
                     if (QuickConnectUtils.IsVSpherePowerCLIInstalled()) {
                         pwChangerFactory.Factories.Add(HostType.ESXi, new PasswordChangerExFactory(new ESXiPasswordChangerFactory()));
                     }
-                    if (!String.IsNullOrEmpty(this.Settings.PsPasswdPath) &&
-                        File.Exists(this.Settings.PsPasswdPath) &&
-                        PsPasswdWrapper.IsPsPasswdUtility(this.Settings.PsPasswdPath) &&
-                        PsPasswdWrapper.IsSupportedVersion(this.Settings.PsPasswdPath)) {
-                        pwChangerFactory.Factories.Add(HostType.Windows, new PasswordChangerExFactory(new WindowsPasswordChangerFactory(
-                            new PsPasswdWrapper(this.Settings.PsPasswdPath)))
-                        );
+                    if (String.Equals(this.Settings.WindowsPasswordResetMethod, WindowsPasswordResetMethods.Ssh, StringComparison.OrdinalIgnoreCase)) {
+                        pwChangerFactory.Factories.Add(HostType.Windows, new WindowsSshPasswordChangerExFactory());
+                    }
+                    else {
+                        var psPasswdPath = QuickConnectUtils.ResolvePath(this.Settings.PsPasswdPath);
+                        if (QuickConnectUtils.FileExists(this.Settings.PsPasswdPath) &&
+                            PsPasswdWrapper.IsPsPasswdUtility(psPasswdPath)) {
+                            pwChangerFactory.Factories.Add(HostType.Windows, new PasswordChangerExFactory(new WindowsPasswordChangerFactory(
+                                new WindowsPasswordChanger(new PsPasswdWrapper(psPasswdPath)))));
+                        }
                     }
                     pwChangerFactory.Factories.Add(HostType.Linux, new LinuxPasswordChangerExFactory(new LinuxPasswordChangerFactory()));
 
@@ -417,35 +422,26 @@ namespace QuickConnectPlugin {
                 menuItems.Add(menuItem);
             };
 
-            if (hostPwEntry.ConnectionMethods.Contains(ConnectionMethodType.PuttySSH) ||
-                hostPwEntry.ConnectionMethods.Contains(ConnectionMethodType.PuttyTelnet)) {
-                string puttyPath = null;
-                var menuItem = new ToolStripMenuItem() {
-                    Text = OpenPuttyMenuItemText,
-                    Image = (System.Drawing.Image)QuickConnectPlugin.Properties.Resources.konsole,
-                    Enabled = QuickConnectUtils.CanOpenPutty(Settings, hostPwEntry, out puttyPath)
-                };
-
-                if (Settings.EnableShortcutKeys == true && Settings.PuttyShortcutKey != Keys.None)
-                {
-                    menuItem.ShortcutKeys = Settings.PuttyShortcutKey;
-                    menuItem.ShowShortcutKeys = true;
+            if (HasSshConnectionMethod(hostPwEntry)) {
+                if (this.Settings.ShowAllSshConnectionTypes) {
+                    menuItems.Add(createWindowsTerminalSshMenuItem(hostPwEntry));
+                    menuItems.Add(createWindowsTerminalPlinkMenuItem(hostPwEntry));
+                    menuItems.Add(createPuttyMenuItem(hostPwEntry));
                 }
+                else {
+                    var sshConnectionType = GetSelectedSshConnectionType();
 
-                menuItem.Click += new EventHandler(
-                    delegate(object obj, EventArgs ev) {
-                        try {
-                            var sessionFinder = new RegistryPuttySessionFinder(new WindowsRegistryService());
-                            IArgumentsFormatter argsFormatter = new PuttyArgumentsFormatter(puttyPath, sessionFinder, !this.Settings.DisableCLIPasswordForPutty);
-                            ProcessUtils.StartDetached(argsFormatter.Format(hostPwEntry));
-                        }
-                        catch (Exception ex) {
-                            log(ex);
-                        };
+                    if (String.Equals(sshConnectionType, SshConnectionTypes.WindowsTerminalSsh, StringComparison.OrdinalIgnoreCase)) {
+                        menuItems.Add(createWindowsTerminalSshMenuItem(hostPwEntry));
                     }
-                );
-                menuItems.Add(menuItem);
-            };
+                    else if (String.Equals(sshConnectionType, SshConnectionTypes.WindowsTerminalPlink, StringComparison.OrdinalIgnoreCase)) {
+                        menuItems.Add(createWindowsTerminalPlinkMenuItem(hostPwEntry));
+                    }
+                    else {
+                        menuItems.Add(createPuttyMenuItem(hostPwEntry));
+                    }
+                }
+            }
 
             if (hostPwEntry.ConnectionMethods.Contains(ConnectionMethodType.WinSCP)) {
                 string winScpPath = null;
@@ -477,6 +473,121 @@ namespace QuickConnectPlugin {
             return menuItems;
         }
 
+        private bool HasSshConnectionMethod(IHostPwEntry hostPwEntry) {
+            return hostPwEntry.ConnectionMethods.Contains(ConnectionMethodType.WindowsTerminalSSH) ||
+                   hostPwEntry.ConnectionMethods.Contains(ConnectionMethodType.PuttySSH) ||
+                   hostPwEntry.ConnectionMethods.Contains(ConnectionMethodType.PuttyTelnet);
+        }
+
+        private string GetSelectedSshConnectionType() {
+            if (QuickConnectUtils.IsSshConnectionTypeValid(this.Settings.SshConnectionType)) {
+                return this.Settings.SshConnectionType;
+            }
+
+            return QuickConnectPluginSettings.DefaultSshConnectionType;
+        }
+
+        [SuppressMessage("Microsoft.Reliability", "CA2000:DisposeObjectsBeforeLosingScope", Justification = "ToolStripMenuItem object is disposed inside entryContextMenu_Closed method")]
+        private ToolStripMenuItem createWindowsTerminalSshMenuItem(IHostPwEntry hostPwEntry) {
+            var windowsTerminalPath = QuickConnectUtils.GetWindowsTerminalPath();
+            var menuItem = new ToolStripMenuItem() {
+                Text = OpenWindowsTerminalSshMenuItemText,
+                Image = (System.Drawing.Image)QuickConnectPlugin.Properties.Resources.konsole,
+                Enabled = hostPwEntry.HasIPAddress && !String.IsNullOrEmpty(windowsTerminalPath)
+            };
+
+            menuItem.Click += new EventHandler(
+                delegate(object obj, EventArgs ev) {
+                    try {
+                        IArgumentsFormatter argsFormatter = new WindowsTerminalSshArgumentsFormatter(windowsTerminalPath);
+                        ProcessUtils.StartDetached(argsFormatter.Format(hostPwEntry));
+                    }
+                    catch (Exception ex) {
+                        log(ex);
+                    };
+                }
+            );
+
+            return menuItem;
+        }
+
+        [SuppressMessage("Microsoft.Reliability", "CA2000:DisposeObjectsBeforeLosingScope", Justification = "ToolStripMenuItem object is disposed inside entryContextMenu_Closed method")]
+        private ToolStripMenuItem createWindowsTerminalPlinkMenuItem(IHostPwEntry hostPwEntry) {
+            string windowsTerminalPath = null;
+            string plinkPath = null;
+            var menuItem = new ToolStripMenuItem() {
+                Text = OpenWindowsTerminalPlinkMenuItemText,
+                Image = (System.Drawing.Image)QuickConnectPlugin.Properties.Resources.konsole,
+                Enabled = QuickConnectUtils.CanOpenWindowsTerminal(Settings, hostPwEntry, out windowsTerminalPath, out plinkPath)
+            };
+
+            menuItem.Click += new EventHandler(
+                delegate(object obj, EventArgs ev) {
+                    try {
+                        var registryService = new WindowsRegistryService();
+                        var sshPort = 22;
+                        if (hostPwEntry.IPAddress.Contains(":")) {
+                            int parsedPort;
+                            if (int.TryParse(hostPwEntry.IPAddress.Substring(hostPwEntry.IPAddress.IndexOf(':') + 1), out parsedPort)) {
+                                sshPort = parsedPort;
+                            }
+                        }
+                        else {
+                            PuttyOptions options = null;
+                            bool success = PuttyOptions.TryParse(hostPwEntry.AdditionalOptions, out options);
+                            if (success && options.Port.HasValue) {
+                                sshPort = options.Port.Value;
+                            }
+                        }
+
+                        var hostName = hostPwEntry.IPAddress.Contains(":")
+                            ? hostPwEntry.IPAddress.Substring(0, hostPwEntry.IPAddress.IndexOf(':'))
+                            : hostPwEntry.IPAddress;
+                        var useBatchMode = QuickConnectUtils.IsPuttyHostKeyCached(hostName, sshPort, registryService);
+
+                        IArgumentsFormatter argsFormatter = new WindowsTerminalArgumentsFormatter(windowsTerminalPath, plinkPath, useBatchMode);
+                        ProcessUtils.StartDetached(argsFormatter.Format(hostPwEntry));
+                    }
+                    catch (Exception ex) {
+                        log(ex);
+                    };
+                }
+            );
+
+            return menuItem;
+        }
+
+        [SuppressMessage("Microsoft.Reliability", "CA2000:DisposeObjectsBeforeLosingScope", Justification = "ToolStripMenuItem object is disposed inside entryContextMenu_Closed method")]
+        private ToolStripMenuItem createPuttyMenuItem(IHostPwEntry hostPwEntry) {
+            string puttyPath = null;
+            var menuItem = new ToolStripMenuItem() {
+                Text = OpenPuttyMenuItemText,
+                Image = (System.Drawing.Image)QuickConnectPlugin.Properties.Resources.konsole,
+                Enabled = QuickConnectUtils.CanOpenPutty(Settings, hostPwEntry, out puttyPath)
+            };
+
+            if (Settings.EnableShortcutKeys == true && Settings.PuttyShortcutKey != Keys.None)
+            {
+                menuItem.ShortcutKeys = Settings.PuttyShortcutKey;
+                menuItem.ShowShortcutKeys = true;
+            }
+
+            menuItem.Click += new EventHandler(
+                delegate(object obj, EventArgs ev) {
+                    try {
+                        var sessionFinder = new RegistryPuttySessionFinder(new WindowsRegistryService());
+                        IArgumentsFormatter argsFormatter = new PuttyArgumentsFormatter(puttyPath, sessionFinder, !this.Settings.DisableCLIPasswordForPutty);
+                        ProcessUtils.StartDetached(argsFormatter.Format(hostPwEntry));
+                    }
+                    catch (Exception ex) {
+                        log(ex);
+                    };
+                }
+            );
+
+            return menuItem;
+        }
+
         [SuppressMessage("Microsoft.Reliability", "CA2000:DisposeObjectsBeforeLosingScope", Justification = "ToolStripMenuItem object is disposed inside entryContextMenu_Closed method")]
         private ToolStripMenuItem createChangePasswordMenuItem(HostPwEntry hostPwEntry) {
             IPasswordChanger pwChanger = null;
@@ -485,13 +596,8 @@ namespace QuickConnectPlugin {
             if (hostType == HostType.ESXi && QuickConnectUtils.IsVSpherePowerCLIInstalled()) {
                 pwChanger = new ESXiPasswordChanger();
             }
-            else if (hostType == HostType.Windows &&
-                                !String.IsNullOrEmpty(this.Settings.PsPasswdPath) &&
-                                File.Exists(this.Settings.PsPasswdPath) &&
-                                PsPasswdWrapper.IsPsPasswdUtility(this.Settings.PsPasswdPath) &&
-                                PsPasswdWrapper.IsSupportedVersion(this.Settings.PsPasswdPath)
-            ) {
-                pwChanger = new WindowsPasswordChanger(new PsPasswdWrapper(this.Settings.PsPasswdPath));
+            else if (hostType == HostType.Windows) {
+                pwChanger = this.CreateWindowsPasswordChanger(hostPwEntry);
             }
             else if (hostType == HostType.Linux) {
                 PuttyOptions puttyOptions = null;
@@ -528,6 +634,25 @@ namespace QuickConnectPlugin {
                 }
             );
             return menuItem;
+        }
+
+        private IPasswordChanger CreateWindowsPasswordChanger(HostPwEntry hostPwEntry) {
+            if (String.Equals(this.Settings.WindowsPasswordResetMethod, WindowsPasswordResetMethods.Ssh, StringComparison.OrdinalIgnoreCase)) {
+                PuttyOptions puttyOptions = null;
+                bool success = PuttyOptions.TryParse(hostPwEntry.AdditionalOptions, out puttyOptions);
+                var sshPasswordChanger = new WindowsSshPasswordChanger();
+                if (success && puttyOptions.Port.HasValue) {
+                    sshPasswordChanger.SshPort = puttyOptions.Port.Value;
+                }
+                return sshPasswordChanger;
+            }
+
+            if (QuickConnectUtils.FileExists(this.Settings.PsPasswdPath) &&
+                PsPasswdWrapper.IsPsPasswdUtility(QuickConnectUtils.ResolvePath(this.Settings.PsPasswdPath))) {
+                return new WindowsPasswordChanger(new PsPasswdWrapper(QuickConnectUtils.ResolvePath(this.Settings.PsPasswdPath)));
+            }
+
+            return null;
         }
 
         private void refreshUI() {

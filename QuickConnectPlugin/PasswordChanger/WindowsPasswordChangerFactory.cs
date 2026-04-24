@@ -4,14 +4,14 @@ namespace QuickConnectPlugin.PasswordChanger {
 
     public class WindowsPasswordChangerFactory : IPasswordChangerGenericFactory<IPasswordChanger> {
 
-        private PsPasswdWrapper wrapper;
+        private IPasswordChanger passwordChanger;
 
-        public WindowsPasswordChangerFactory(PsPasswdWrapper wrapper) {
-            this.wrapper = wrapper;
+        public WindowsPasswordChangerFactory(IPasswordChanger passwordChanger) {
+            this.passwordChanger = passwordChanger;
         }
 
         public IPasswordChanger Create() {
-            return new WindowsPasswordChanger(this.wrapper);
+            return this.passwordChanger;
         }
     }
 }

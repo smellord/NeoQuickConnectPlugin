@@ -77,5 +77,39 @@ namespace QuickConnectPlugin.Tests.PasswordChanger.Services {
             passwordDatabaseMock.Verify(v => v.Save(), Times.Once);
             clockMock.Verify(v => v.Now, Times.Never);
         }
+
+        [Test]
+        public void UpdateEntryPassword() {
+            var passwordDatabaseMock = new Mock<IPasswordDatabase>();
+            var passwordChangerExFactoryMock = new Mock<IPasswordChangerExFactory>();
+            var hostTypeMapperMock = new Mock<IHostTypeMapper>();
+
+            var now = DateTime.Now;
+
+            var clockMock = new Mock<IClock>();
+            clockMock.Setup(x => x.Now).Returns(now);
+
+            var passwordChangerService = new PasswordChangerService(
+                passwordDatabaseMock.Object,
+                passwordChangerExFactoryMock.Object,
+                hostTypeMapperMock.Object,
+                clockMock.Object
+            );
+
+            var hostPwEntry = new InMemoryHostPwEntry() {
+                IPAddress = "localhost",
+                Username = "username",
+                Password = "password",
+            };
+
+            passwordChangerService.UpdateEntryPassword(hostPwEntry, "newPassword");
+
+            Assert.AreEqual("newPassword", hostPwEntry.Password);
+            Assert.AreEqual(now, hostPwEntry.LastModificationTime);
+            passwordChangerExFactoryMock.Verify(v => v.Create(It.IsAny<HostType>()), Times.Never);
+            hostTypeMapperMock.Verify(v => v.Get(It.IsAny<IHostPwEntry>()), Times.Never);
+            passwordDatabaseMock.Verify(v => v.Save(), Times.Never);
+            clockMock.Verify(v => v.Now, Times.Once);
+        }
     }
 }

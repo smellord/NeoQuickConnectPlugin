@@ -153,5 +153,20 @@ namespace QuickConnectPlugin.Tests {
             Assert.DoesNotThrow(() => additionalOptions = entry.AdditionalOptions);
             Assert.That(additionalOptions, Is.EqualTo(expectedAdditionalOptions));
         }
+
+        [Test]
+        public void UpdatePasswordAlsoUpdatesExpiryDate() {
+            var pwEntry = PwDatabaseUtils.FindEntryByTitle(this.pwDatabase, "Linux host sample", true);
+            Assert.IsNotNull(pwEntry);
+
+            var hostPwEntry = new HostPwEntry(pwEntry, this.pwDatabase, this.fieldMapper);
+            var expectedExpiryDate = DateTime.Now.Date.AddDays(90);
+
+            hostPwEntry.UpdatePassword("temporaryNewPassword123!");
+
+            Assert.AreEqual("temporaryNewPassword123!", hostPwEntry.GetPassword());
+            Assert.IsTrue(pwEntry.Expires);
+            Assert.AreEqual(expectedExpiryDate, pwEntry.ExpiryTime.Date);
+        }
     }
 }

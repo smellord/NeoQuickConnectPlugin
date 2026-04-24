@@ -3,5 +3,6 @@
     public interface IPasswordChangerHostPwEntry : IHasTitle, IHostPwEntry {
 
         HostType HostType { get; }
+        string PasswordExpiresIn { get; }
     }
 }

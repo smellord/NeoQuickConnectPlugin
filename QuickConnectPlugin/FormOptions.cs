@@ -1,7 +1,8 @@
-﻿using QuickConnectPlugin.PasswordChanger;
+using QuickConnectPlugin.PasswordChanger;
 using QuickConnectPlugin.ShortcutKeys;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,10 @@ namespace QuickConnectPlugin
     [PermissionSet(SecurityAction.InheritanceDemand, Name = "FullTrust")]
     public partial class FormOptions : Form
     {
+        private const string PuttyDownloadUrl = "https://www.putty.org/";
+        private const string WinScpDownloadUrl = "https://winscp.net/eng/download.php";
+        private const string PsPasswdDownloadUrl = "https://learn.microsoft.com/en-us/sysinternals/downloads/pspasswd";
+
         private readonly IQuickConnectPluginSettings settings;
 
         private readonly HotKeyControlEx shortcutKeyControlRemoteDesktop;
@@ -36,6 +41,7 @@ namespace QuickConnectPlugin
             this.checkBoxCompatibleMode.Checked = settings.CompatibleMode;
             this.checkBoxAddChangePasswordItem.Checked = settings.AddChangePasswordMenuItem;
             this.checkBoxDisableCLIPasswordForPutty.Checked = settings.DisableCLIPasswordForPutty;
+            this.checkBoxShowAllSshOptions.Checked = settings.ShowAllSshConnectionTypes;
 
             this.textBoxPuttyPath.Text = settings.PuttyPath;
             this.textBoxPuttyPath.Select(this.textBoxPuttyPath.Text.Length, 0);
@@ -45,6 +51,32 @@ namespace QuickConnectPlugin
 
             this.textBoxPsPasswdPath.Text = settings.PsPasswdPath;
             this.textBoxPsPasswdPath.Select(this.textBoxPsPasswdPath.Text.Length, 0);
+
+            this.comboBoxSshConnectionType.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.comboBoxSshConnectionType.Items.Add(SshConnectionTypes.WindowsTerminalSsh);
+            this.comboBoxSshConnectionType.Items.Add(SshConnectionTypes.WindowsTerminalPlink);
+            this.comboBoxSshConnectionType.Items.Add(SshConnectionTypes.Putty);
+            var sshConnectionType = QuickConnectUtils.IsSshConnectionTypeValid(settings.SshConnectionType)
+                ? settings.SshConnectionType
+                : QuickConnectPluginSettings.DefaultSshConnectionType;
+            this.comboBoxSshConnectionType.SelectedIndex = this.comboBoxSshConnectionType.FindStringExact(sshConnectionType);
+            if (this.comboBoxSshConnectionType.SelectedIndex < 0)
+            {
+                this.comboBoxSshConnectionType.SelectedIndex = 0;
+            }
+            this.comboBoxSshConnectionType.Enabled = !this.checkBoxShowAllSshOptions.Checked;
+
+            this.comboBoxWindowsPasswordResetMethod.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.comboBoxWindowsPasswordResetMethod.Items.Add(WindowsPasswordResetMethods.PsPasswd);
+            this.comboBoxWindowsPasswordResetMethod.Items.Add(WindowsPasswordResetMethods.Ssh);
+            var selectedMethod = QuickConnectUtils.IsWindowsPasswordResetMethodValid(settings.WindowsPasswordResetMethod)
+                ? settings.WindowsPasswordResetMethod
+                : QuickConnectPluginSettings.DefaultWindowsPasswordResetMethod;
+            this.comboBoxWindowsPasswordResetMethod.SelectedIndex = this.comboBoxWindowsPasswordResetMethod.FindStringExact(selectedMethod);
+            if (this.comboBoxWindowsPasswordResetMethod.SelectedIndex < 0)
+            {
+                this.comboBoxWindowsPasswordResetMethod.SelectedIndex = 0;
+            }
 
             // Always add empty items.
             this.comboBoxHostAddressMapFieldName.Items.Add(string.Empty);
@@ -145,9 +177,12 @@ namespace QuickConnectPlugin
             this.checkBoxCompatibleMode.CheckedChanged += new EventHandler(SettingsChanged);
             this.checkBoxAddChangePasswordItem.CheckedChanged += new EventHandler(SettingsChanged);
             this.checkBoxDisableCLIPasswordForPutty.CheckedChanged += new EventHandler(SettingsChanged);
+            this.checkBoxShowAllSshOptions.CheckedChanged += new EventHandler(ShowAllSshOptionsChanged);
             this.textBoxPuttyPath.TextChanged += new EventHandler(SettingsChanged);
             this.textBoxWinScpPath.TextChanged += new EventHandler(SettingsChanged);
             this.textBoxPsPasswdPath.TextChanged += new EventHandler(SettingsChanged);
+            this.comboBoxSshConnectionType.SelectedIndexChanged += new EventHandler(SettingsChanged);
+            this.comboBoxWindowsPasswordResetMethod.SelectedIndexChanged += new EventHandler(SettingsChanged);
             this.comboBoxHostAddressMapFieldName.SelectedIndexChanged += new EventHandler(SettingsChanged);
             this.comboBoxConnectionMethodMapFieldName.SelectedIndexChanged += new EventHandler(SettingsChanged);
             this.comboBoxAdditionalOptionsMapFieldName.SelectedIndexChanged += new EventHandler(SettingsChanged);
@@ -192,6 +227,13 @@ namespace QuickConnectPlugin
             this.settings.PuttyPath = this.textBoxPuttyPath.Text;
             this.settings.WinScpPath = this.textBoxWinScpPath.Text;
             this.settings.PsPasswdPath = this.textBoxPsPasswdPath.Text;
+            this.settings.ShowAllSshConnectionTypes = this.checkBoxShowAllSshOptions.Checked;
+            this.settings.SshConnectionType = this.comboBoxSshConnectionType.SelectedItem == null
+                ? QuickConnectPluginSettings.DefaultSshConnectionType
+                : this.comboBoxSshConnectionType.SelectedItem.ToString();
+            this.settings.WindowsPasswordResetMethod = this.comboBoxWindowsPasswordResetMethod.SelectedItem == null
+                ? QuickConnectPluginSettings.DefaultWindowsPasswordResetMethod
+                : this.comboBoxWindowsPasswordResetMethod.SelectedItem.ToString();
             this.settings.HostAddressMapFieldName = (string)this.comboBoxHostAddressMapFieldName.SelectedItem;
             this.settings.ConnectionMethodMapFieldName = (string)this.comboBoxConnectionMethodMapFieldName.SelectedItem;
             this.settings.AdditionalOptionsMapFieldName = (string)this.comboBoxAdditionalOptionsMapFieldName.SelectedItem;
@@ -209,7 +251,7 @@ namespace QuickConnectPlugin
 
         private bool IsPuttyPathValid()
         {
-            if (this.textBoxPuttyPath.Text.Length == 0 || !File.Exists(this.textBoxPuttyPath.Text))
+            if (this.textBoxPuttyPath.Text.Length == 0 || !QuickConnectUtils.FileExists(this.textBoxPuttyPath.Text))
             {
                 return (this.textBoxPuttyPath.Text.Length == 0);
             }
@@ -222,7 +264,7 @@ namespace QuickConnectPlugin
 
         private bool IsWinScpPathValid()
         {
-            if (this.textBoxWinScpPath.Text.Length == 0 || !File.Exists(this.textBoxWinScpPath.Text))
+            if (this.textBoxWinScpPath.Text.Length == 0 || !QuickConnectUtils.FileExists(this.textBoxWinScpPath.Text))
             {
                 return (this.textBoxWinScpPath.Text.Length == 0); // Allow empty path.
             }
@@ -235,6 +277,15 @@ namespace QuickConnectPlugin
 
         private bool IsPsPasswdPathValid()
         {
+            if (this.comboBoxWindowsPasswordResetMethod.SelectedItem != null &&
+                String.Equals(this.comboBoxWindowsPasswordResetMethod.SelectedItem.ToString(), WindowsPasswordResetMethods.Ssh, StringComparison.OrdinalIgnoreCase))
+            {
+                this.pictureBoxPsPasswdPathWarningIcon.Visible = false;
+                this.labelPsPasswdPathWarningMessage.Visible = false;
+                this.textBoxPsPasswdPath.BackColor = default(Color);
+                return true;
+            }
+
             if (this.textBoxPsPasswdPath.Text.Length == 0)
             {
                 this.pictureBoxPsPasswdPathWarningIcon.Visible = false;
@@ -248,16 +299,12 @@ namespace QuickConnectPlugin
                 this.pictureBoxPsPasswdPathWarningIcon.Visible = true;
                 this.labelPsPasswdPathWarningMessage.Visible = true;
 
-                if (File.Exists(this.textBoxPsPasswdPath.Text))
+                var psPasswdPath = QuickConnectUtils.ResolvePath(this.textBoxPsPasswdPath.Text);
+                if (File.Exists(psPasswdPath))
                 {
-                    if (!PsPasswdWrapper.IsPsPasswdUtility(this.textBoxPsPasswdPath.Text))
+                    if (!PsPasswdWrapper.IsPsPasswdUtility(psPasswdPath))
                     {
-                        this.labelPsPasswdPathWarningMessage.Text = string.Format("Specified file is not valid.");
-                        return false;
-                    }
-                    else if (!PsPasswdWrapper.IsSupportedVersion(this.textBoxPsPasswdPath.Text))
-                    {
-                        this.labelPsPasswdPathWarningMessage.Text = string.Format("Only version {0} is supported.", PsPasswdWrapper.SupportedVersion);
+                        this.labelPsPasswdPathWarningMessage.Text = "Specified file is not valid.";
                         return false;
                     }
                     else
@@ -281,6 +328,12 @@ namespace QuickConnectPlugin
             this.buttonApply.Enabled = ValidateSettings();
         }
 
+        private void ShowAllSshOptionsChanged(object sender, EventArgs e)
+        {
+            this.comboBoxSshConnectionType.Enabled = !this.checkBoxShowAllSshOptions.Checked;
+            this.SettingsChanged(sender, e);
+        }
+
         private bool ValidateSettings()
         {
             bool isValidPuttyPath = IsPuttyPathValid();
@@ -300,83 +353,201 @@ namespace QuickConnectPlugin
 
         private void ButtonConfigurePuttyPath_Click(object sender, EventArgs e)
         {
-            using (var openFileDialog = new OpenFileDialog())
-            {
-                openFileDialog.Multiselect = false;
+            this.ConfigureExecutablePath(this.textBoxPuttyPath, "PuTTY executable (*.exe)|*.exe|All files (*.*)|*.*", "Select PuTTY Path");
+        }
 
-                if (File.Exists(this.textBoxPuttyPath.Text))
-                {
-                    openFileDialog.InitialDirectory = Path.GetDirectoryName(this.textBoxPuttyPath.Text);
-                    openFileDialog.FileName = Path.GetFileName(this.textBoxPuttyPath.Text);
-                }
+        private void ButtonAutoSetPuttyPath_Click(object sender, EventArgs e)
+        {
+            this.AutoSetExecutablePath(this.textBoxPuttyPath, QuickConnectUtils.GetPuttyPath(), QuickConnectUtils.DefaultPuttyPath, "PuTTY");
+        }
 
-                openFileDialog.CheckFileExists = true;
-                openFileDialog.CheckPathExists = true;
-                openFileDialog.Filter = "PuTTY executable (*.exe)|*.exe|All files (*.*)|*.*";
-                openFileDialog.Title = "Select PuTTY Path";
-
-                var result = openFileDialog.ShowDialog();
-
-                if (result == DialogResult.OK && !string.IsNullOrEmpty(openFileDialog.FileName))
-                {
-                    this.textBoxPuttyPath.Text = openFileDialog.FileName;
-                    this.textBoxPuttyPath.Select(this.textBoxPuttyPath.Text.Length, 0);
-                }
-            }
+        private void ButtonInstallPutty_Click(object sender, EventArgs e)
+        {
+            InstallWithWinGet("PuTTY.PuTTY", "PuTTY", PuttyDownloadUrl, this.textBoxPuttyPath, QuickConnectUtils.GetPuttyPath, QuickConnectUtils.DefaultPuttyPath);
         }
 
         private void ButtonConfigureWinScpPath_Click(object sender, EventArgs e)
         {
-            using (var openFileDialog = new OpenFileDialog())
-            {
-                openFileDialog.Multiselect = false;
+            this.ConfigureExecutablePath(this.textBoxWinScpPath, "WinSCP executable (*.exe)|*.exe|All files (*.*)|*.*", "Select WinSCP Path");
+        }
 
-                if (File.Exists(this.textBoxWinScpPath.Text))
-                {
-                    openFileDialog.InitialDirectory = Path.GetDirectoryName(this.textBoxWinScpPath.Text);
-                    openFileDialog.FileName = Path.GetFileName(this.textBoxWinScpPath.Text);
-                }
+        private void ButtonAutoSetWinScpPath_Click(object sender, EventArgs e)
+        {
+            this.AutoSetExecutablePath(this.textBoxWinScpPath, QuickConnectUtils.GetWinScpPath(), QuickConnectUtils.DefaultWinScpPath, "WinSCP");
+        }
 
-                openFileDialog.CheckFileExists = true;
-                openFileDialog.CheckPathExists = true;
-                openFileDialog.Filter = "WinSCP executable (*.exe)|*.exe|All files (*.*)|*.*";
-                openFileDialog.Title = "Select WinSCP Path";
-
-                var result = openFileDialog.ShowDialog();
-
-                if (result == DialogResult.OK && !string.IsNullOrEmpty(openFileDialog.FileName))
-                {
-                    this.textBoxWinScpPath.Text = openFileDialog.FileName;
-                    this.textBoxWinScpPath.Select(this.textBoxWinScpPath.Text.Length, 0);
-                }
-            }
+        private void ButtonInstallWinScp_Click(object sender, EventArgs e)
+        {
+            InstallWithWinGet("WinSCP.WinSCP", "WinSCP", WinScpDownloadUrl, this.textBoxWinScpPath, QuickConnectUtils.GetWinScpPath, QuickConnectUtils.DefaultWinScpPath);
         }
 
         private void ButtonConfigurePsPasswdPath_Click(object sender, EventArgs e)
+        {
+            this.ConfigureExecutablePath(this.textBoxPsPasswdPath, "PsPasswd executable (*.exe)|*.exe|All files (*.*)|*.*", "Select PsPasswd Path");
+        }
+
+        private void ButtonDownloadPsPasswd_Click(object sender, EventArgs e)
+        {
+            InstallWithWinGet("Microsoft.Sysinternals.PsTools", "PsTools", PsPasswdDownloadUrl, this.textBoxPsPasswdPath, QuickConnectUtils.GetPsPasswdPath, string.Empty);
+        }
+
+        private void ConfigureExecutablePath(TextBox textBox, string filter, string title)
         {
             using (var openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.Multiselect = false;
 
-                if (File.Exists(this.textBoxPsPasswdPath.Text))
+                var resolvedPath = QuickConnectUtils.ResolvePath(textBox.Text);
+                if (File.Exists(resolvedPath))
                 {
-                    openFileDialog.InitialDirectory = Path.GetDirectoryName(this.textBoxPsPasswdPath.Text);
-                    openFileDialog.FileName = Path.GetFileName(this.textBoxPsPasswdPath.Text);
+                    openFileDialog.InitialDirectory = Path.GetDirectoryName(resolvedPath);
+                    openFileDialog.FileName = Path.GetFileName(resolvedPath);
                 }
 
                 openFileDialog.CheckFileExists = true;
                 openFileDialog.CheckPathExists = true;
-                openFileDialog.Filter = "PsPasswd executable (*.exe)|*.exe|All files (*.*)|*.*";
-                openFileDialog.Title = "Select PsPasswd Path";
+                openFileDialog.Filter = filter;
+                openFileDialog.Title = title;
 
                 var result = openFileDialog.ShowDialog();
 
                 if (result == DialogResult.OK && !string.IsNullOrEmpty(openFileDialog.FileName))
                 {
-                    this.textBoxPsPasswdPath.Text = openFileDialog.FileName;
-                    this.textBoxPsPasswdPath.Select(this.textBoxPsPasswdPath.Text.Length, 0);
+                    textBox.Text = QuickConnectUtils.NormalizeForStorage(openFileDialog.FileName);
+                    textBox.Select(textBox.Text.Length, 0);
                 }
             }
+        }
+
+        private void AutoSetExecutablePath(TextBox textBox, string detectedPath, string fallbackPath, string applicationName)
+        {
+            textBox.Text = !string.IsNullOrEmpty(detectedPath)
+                ? QuickConnectUtils.NormalizeForStorage(detectedPath)
+                : fallbackPath;
+            textBox.Select(textBox.Text.Length, 0);
+
+            if (string.IsNullOrEmpty(detectedPath))
+            {
+                var message = !string.IsNullOrEmpty(fallbackPath)
+                    ? string.Format("{0} was not detected automatically. The default path has been filled in and can be adjusted manually if needed.", applicationName)
+                    : string.Format("{0} was not detected automatically. Please set the path manually if it is still missing.", applicationName);
+
+                MessageBox.Show(
+                    message,
+                    "Auto Set",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+        }
+
+        private static void OpenDownloadPage(string url, string applicationName)
+        {
+            try
+            {
+                QuickConnectUtils.OpenUrl(url);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                MessageBox.Show(
+                    string.Format("Unable to open the {0} download page.\n\n{1}", applicationName, ex.Message),
+                    "Open Download Page",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        private void InstallWithWinGet(string packageId, string applicationName, string fallbackUrl, TextBox targetTextBox, Func<string> detectPathFunc, string fallbackPath)
+        {
+            try
+            {
+                if (String.Equals(packageId, "Microsoft.Sysinternals.PsTools", StringComparison.OrdinalIgnoreCase))
+                {
+                    var preparedPsPasswdPath = QuickConnectUtils.PreparePsPasswdPath();
+                    if (!string.IsNullOrEmpty(preparedPsPasswdPath))
+                    {
+                        targetTextBox.Text = QuickConnectUtils.NormalizeForStorage(preparedPsPasswdPath);
+                        targetTextBox.Select(targetTextBox.Text.Length, 0);
+                        PersistPsPasswdPath(targetTextBox);
+
+                        MessageBox.Show(
+                            this,
+                            "PsTools is already installed. I've set the path to pspasswd for you.",
+                            "PsTools Ready",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information);
+                        return;
+                    }
+                }
+
+                if (!QuickConnectUtils.EnsureWinGetAvailable(this))
+                {
+                    return;
+                }
+
+                UseWaitCursor = true;
+                Enabled = false;
+
+                string errorMessage;
+                bool alreadyInstalled;
+                if (!QuickConnectUtils.InstallPackageWithWinGet(packageId, out errorMessage, out alreadyInstalled))
+                {
+                    throw new Exception(string.IsNullOrEmpty(errorMessage) ? "The package installation did not complete successfully." : errorMessage);
+                }
+
+                var detectedPath = detectPathFunc();
+                if (String.Equals(packageId, "Microsoft.Sysinternals.PsTools", StringComparison.OrdinalIgnoreCase))
+                {
+                    detectedPath = QuickConnectUtils.PreparePsPasswdPath();
+                }
+
+                if (!string.IsNullOrEmpty(detectedPath) || !string.IsNullOrEmpty(fallbackPath))
+                {
+                    this.AutoSetExecutablePath(targetTextBox, detectedPath, fallbackPath, applicationName);
+                    PersistPsPasswdPath(targetTextBox);
+                }
+
+                MessageBox.Show(
+                    this,
+                    alreadyInstalled
+                        ? string.Format("{0} is already installed. The path has been refreshed automatically.", applicationName)
+                        : string.Format("{0} installation completed. The path has been refreshed automatically.", applicationName),
+                    alreadyInstalled ? "Already Installed" : "Installation Complete",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+
+                var result = MessageBox.Show(
+                    this,
+                    string.Format("Unable to start the {0} installation with WinGet.\n\nDo you want to open the direct download page instead?\n\n{1}", applicationName, ex.Message),
+                    "Install Failed",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Error);
+
+                if (result == DialogResult.Yes)
+                {
+                    OpenDownloadPage(fallbackUrl, applicationName);
+                }
+            }
+            finally
+            {
+                Enabled = true;
+                UseWaitCursor = false;
+            }
+        }
+
+        private void PersistPsPasswdPath(TextBox targetTextBox)
+        {
+            if (!object.ReferenceEquals(targetTextBox, this.textBoxPsPasswdPath))
+            {
+                return;
+            }
+
+            this.settings.PsPasswdPath = this.textBoxPsPasswdPath.Text;
+            this.settings.Save();
         }
 
         private void CheckVSpherePowerCLIStatus()

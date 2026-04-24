@@ -2,12 +2,18 @@
 
 QuickConnect is a plugin for [KeePass](http://keepass.info) password manager that allows you to connect to Windows/Linux/ESXi hosts.
 
+## Modified Fork Notice
+
+This branch is an unofficial modified fork based on `cristianst85/QuickConnectPlugin` release `0.6.1`. It keeps the original GPL license and copyright notices, but adds Windows Terminal SSH launch options, expanded password-changing workflows, automatic tool detection/install helpers, and .NET Framework 4.8 project updates.
+
+See [FORK_NOTES.md](FORK_NOTES.md) for the comparison summary, publishing checklist, and notes for users of this fork.
+
 [![Latest Release](https://img.shields.io/github/release/cristianst85/quickconnectplugin.svg)](https://github.com/cristianst85/quickconnectplugin/releases/latest)
 [![Total Downloads](https://img.shields.io/github/downloads/cristianst85/quickconnectplugin/total.svg?maxAge=86400)](https://github.com/cristianst85/quickconnectplugin/releases/latest)
 
 ## Requirements
 
-- Microsoft Windows XP/7/10 with .NET Framework 4.0;
+- Microsoft Windows with .NET Framework 4.8;
 - [KeePass](http://keepass.info) version 2.52 or newer.
 
 ## Installation
@@ -23,7 +29,7 @@ QuickConnect is a plugin for [KeePass](http://keepass.info) password manager tha
 - Connection method is determined based on the text found in the mapped field. For example, if one of the following strings (case-insensitive) is found, then the corresponding items are added to the entry context menu (right-click):
     * `rdp` or `windows` - *Open Remote Desktop* and *Open Remote Desktop (console)*;
     * `esxi` or `vcenter` - *Open vSphere Client*;
-    * `ssh`, `telnet`, `linux` or a known Linux distribution name - *Open PuTTY Console* and *Open WinSCP*.
+    * `ssh`, `telnet`, `linux` or a known Linux distribution name - *Open PuTTY*, *Open Windows Terminal (SSH)*, *Open Windows Terminal (plink)*, and *Open WinSCP*, depending on the SSH option selected in settings.
 - Additional options like session name or port can be specified to be used with PuTTY/WinSCP. The syntax is as follows:
     `[{ssh|telnet}|<os_type>[;session:"<regex_pattern>"[;port:<port>[;ssh_key:"<ssh_key_path.ppk>"]]]]`.
 - Starting with the version [0.6.0-rc.1](https://github.com/cristianst85/QuickConnectPlugin/releases/tag/0.6.0-rc.1) the protocol for WinSCP can be also specified with the additional options. The syntax is as follows:
@@ -35,20 +41,21 @@ Connection method and Additional options can be mapped to the same field. This w
 
 ## Password Changer
 
-This feature allows you to change passwords for Windows/Linux/ESXi hosts directly from KeePass.
+This feature allows you to change passwords for Windows/Linux/ESXi hosts directly from KeePass, including batch password updates with automatic or per-host passwords.
 
 ### Requirements
 
-- [PsPasswd](https://technet.microsoft.com/en-us/sysinternals/bb897543.aspx) utility version 1.22 for Windows hosts.
+- [PsPasswd](https://technet.microsoft.com/en-us/sysinternals/bb897543.aspx) utility for Windows hosts when using the PsPasswd method, or Windows OpenSSH Server when using the SSH method.
 - [vSphere PowerCLI version 5.8.0](https://my.vmware.com/web/vmware/details?downloadGroup=PCLI58R1&productId=420) for ESXi hosts.
 
 ## Security Considerations
 
-- Please take note that when launching *vSphere Client*, *PuTTY*, *WinSCP* or [*PsPasswd*](https://technet.microsoft.com/en-us/sysinternals/bb897543.aspx) (via Password Changer) the plugin exposes the password via command-line arguments and it is visible during the entire lifetime of the child process.
+- Please take note that when launching *vSphere Client*, *PuTTY*, *Windows Terminal with plink*, *WinSCP* or [*PsPasswd*](https://technet.microsoft.com/en-us/sysinternals/bb897543.aspx) (via Password Changer) the plugin can expose the password via command-line arguments and it is visible during the lifetime of the child process.
+- Native Windows Terminal SSH launch does not pass the KeePass password on the command line.
 
 ## Repository
 
-The main repository is hosted on [GitHub](https://github.com/cristianst85/QuickConnectPlugin).
+The original upstream repository is hosted on [GitHub](https://github.com/cristianst85/QuickConnectPlugin). This branch is a modified fork and is not an official upstream release.
 
 ## Changelog
 
@@ -56,8 +63,7 @@ See [CHANGELOG](https://github.com/cristianst85/QuickConnectPlugin/blob/master/C
 
 ## Download
 
-You can download compiled binaries from [here](https://github.com/cristianst85/QuickConnectPlugin/releases/).
-Some experimental builds are available [here](http://www.disruptivesoftware.ro/projects/QuickConnectPlugin/experimental/).
+Official upstream binaries are available from the original project releases. Binaries for this modified fork should be published from the fork repository together with the corresponding source code.
 
 ## License
 

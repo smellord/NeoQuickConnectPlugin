@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
@@ -11,21 +11,26 @@ using Renci.SshNet.Common;
 
 namespace QuickConnectPlugin.PasswordChanger {
 
-    public class LinuxPasswordChanger : ILinuxPasswordChanger {
+    public class LinuxPasswordChanger : ILinuxPasswordChanger, IPasswordChangerResultInfo {
 
         public const int DefaultSshPort = 22;
         public const int DefaultTimeout = 4;
+        internal const string CurrentPasswordPromptPattern = @"(\(current\)\s+)?(UNIX\s+)?(current|old)\s+password";
+        internal const string NewPasswordPromptPattern = @"(Enter\s+)?new(\s+UNIX)?\s+password";
+        internal const string RepeatPasswordPromptPattern = @"(Re|Retype|Repeat|Confirm).*(new\s+)?password";
+        internal const string PasswordChangedPattern = @"Password.*(changed|updated)|all authentication tokens updated successfully";
 
         public int? SshPort { get; set; }
         public int Timeout { get; set; }
+        public string LastOperationDetails { get; private set; }
 
         [SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times", Justification = "Dispose is idempotent")]
         public void ChangePassword(string host, string username, string password, string newPassword) {
 
             this.Timeout = DefaultTimeout;
+            this.LastOperationDetails = null;
 
             using (var keyboardInteractiveAuthenticationMethod = new KeyboardInteractiveAuthenticationMethod(username)) {
-                
                 keyboardInteractiveAuthenticationMethod.AuthenticationPrompt += new EventHandler<AuthenticationPromptEventArgs>((sender, e) => authenticationPrompted(sender, e, password));
 
                 using (var passwordAuthenticationMethod = new PasswordAuthenticationMethod(username, password)) {
@@ -47,34 +52,38 @@ namespace QuickConnectPlugin.PasswordChanger {
                     }
 
                     ConnectionInfo connectionInfo = new ConnectionInfo(hostWithoutPort, port, username,
-                        new AuthenticationMethod[] {  
+                        new AuthenticationMethod[] {
                             keyboardInteractiveAuthenticationMethod,
                             passwordAuthenticationMethod
                         }
                     );
 
-                    var messages = new Collection<String>(); ;
+                    var messages = new Collection<String>();
+                    var serverLogMessages = new Collection<String>();
 
                     using (var sshClient = new SshClient(connectionInfo)) {
                         sshClient.Connect();
                         using (var shellStream = sshClient.CreateShellStream("xterm", 80, 24, 800, 600, 1024)) {
                             shellStream.DataReceived += new EventHandler<ShellDataEventArgs>((s, e) => {
                                 var message = Encoding.UTF8.GetString(e.Data)
-                                    .Trim('\n').Trim('\r').Trim().
-                                    Replace("\n", " / ").
-                                    Replace("\r", String.Empty).TrimEnd(':');
-                                // Keep only relevant messages - ignore shell prompt lines.
+                                    .Trim('\n').Trim('\r').Trim()
+                                    .Replace("\n", " / ")
+                                    .Replace("\r", String.Empty)
+                                    .TrimEnd(':');
+
                                 if (!(message.Contains("@") || message.EndsWith("/>") || message.EndsWith("]$") || String.IsNullOrEmpty(message))) {
                                     messages.Add(message);
+                                    serverLogMessages.Add(message);
                                 }
                             });
+
                             using (var writer = new StreamWriter(shellStream) { AutoFlush = true }) {
                                 writer.WriteLine("passwd");
-                                // Non-root user must enter the current password first.
-                                processShellStream(shellStream, @"\(current\) UNIX password", writer, password, true, messages);
-                                processShellStream(shellStream, "New password", writer, newPassword, false, messages);
-                                processShellStream(shellStream, "Re.*new password", writer, newPassword, false, messages);
-                                processShellStream(shellStream, "Password.*(changed|updated)|all authentication tokens updated successfully", null, null, false, messages);
+                                processShellStream(shellStream, CurrentPasswordPromptPattern, writer, password, true, messages);
+                                processShellStream(shellStream, NewPasswordPromptPattern, writer, newPassword, false, messages);
+                                processShellStream(shellStream, RepeatPasswordPromptPattern, writer, newPassword, false, messages);
+                                processShellStream(shellStream, PasswordChangedPattern, null, null, false, messages);
+                                this.LastOperationDetails = buildOperationDetails(serverLogMessages);
                             }
                         }
                     }
@@ -84,16 +93,15 @@ namespace QuickConnectPlugin.PasswordChanger {
 
         private void processShellStream(ShellStream shellStream, String expectedRegexPattern, StreamWriter writer, string input, bool isOptional, ICollection<string> messages) {
             bool wasExecuted = false;
-            Action<string> action = (x) => {
+            Action<string> action = delegate(string x) {
                 if (writer != null && input != null) {
                     writer.WriteLine(input);
-                };
+                }
                 wasExecuted = true;
                 messages.Clear();
             };
             var expectAction = new ExpectAction(new Regex(expectedRegexPattern, RegexOptions.IgnoreCase), action);
             shellStream.Expect(TimeSpan.FromSeconds(Timeout), expectAction);
-            // Shell output is always null when the action was not executed.
             if (!(isOptional || wasExecuted)) {
                 var message = messages.LastOrDefault();
                 if (messages.Count > 1) {
@@ -109,6 +117,14 @@ namespace QuickConnectPlugin.PasswordChanger {
                     prompt.Response = password;
                 }
             }
+        }
+
+        private static string buildOperationDetails(IEnumerable<string> messages) {
+            var result = messages.Where(x => !String.IsNullOrEmpty(x)).Distinct().ToArray();
+            if (result.Length == 0) {
+                return "Password changed successfully on the server.";
+            }
+            return string.Join(Environment.NewLine, result);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -14,8 +14,11 @@ namespace QuickConnectPlugin {
 
     public partial class FormBatchPasswordChanger : Form {
 
+        private const int DefaultAutomaticPasswordLength = 16;
+
         private IPasswordChangerServiceFactory pwChangerServiceFactory;
         private BatchPasswordChangerWorker pwChangerWorker;
+        private IDictionary<string, ManualPasswordState> manualPasswordStates;
 
         public bool Changed { get; private set; }
 
@@ -26,10 +29,10 @@ namespace QuickConnectPlugin {
 
             InitializeComponent();
 
+            this.manualPasswordStates = new Dictionary<string, ManualPasswordState>();
             this.pwChangerServiceFactory = pwChangerServiceFactory;
 
-            // Smooth resize.
-            if (this.FormBorderStyle == System.Windows.Forms.FormBorderStyle.Sizable) {
+            if (this.FormBorderStyle == FormBorderStyle.Sizable) {
                 this.treeView.Dock = DockStyle.Fill;
                 this.listView.Dock = DockStyle.Fill;
                 this.splitContainer.IsSplitterFixed = false;
@@ -39,15 +42,17 @@ namespace QuickConnectPlugin {
             }
 
             this.buttonStartChangePasswords.Enabled = false;
-            this.checkBoxOverrideHostType.Checked = false;
-            this.comboBoxHostType.Enabled = false;
             this.toolStripMenuItemSaveLogAs.Enabled = false;
             this.toolStripMenuItemClearLog.Enabled = false;
 
-            foreach (var hostType in this.pwChangerServiceFactory.GetSupported()) {
-                this.comboBoxHostType.Items.Add(hostType);
-            }
-            this.checkBoxOverrideHostType.Enabled = this.comboBoxHostType.Items.Count > 0;
+            this.comboBoxAutomaticComplexity.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.comboBoxAutomaticComplexity.Items.Add("Low");
+            this.comboBoxAutomaticComplexity.Items.Add("Medium");
+            this.comboBoxAutomaticComplexity.Items.Add("High");
+            this.comboBoxAutomaticComplexity.SelectedIndex = 2;
+            this.numericUpDownAutomaticPasswordLength.Minimum = 4;
+            this.numericUpDownAutomaticPasswordLength.Maximum = 128;
+            this.numericUpDownAutomaticPasswordLength.Value = DefaultAutomaticPasswordLength;
 
             this.listView.FullRowSelect = true;
 
@@ -64,53 +69,52 @@ namespace QuickConnectPlugin {
 
             this.toolStripMenuItemSaveLogAs.Click += new EventHandler(saveLogAsClick);
             this.toolStripMenuItemClearLog.Click += new EventHandler(clearLogClick);
-
-            this.maskedTextBoxNewPassword.TextChanged += new EventHandler(checkPasswords);
-            this.maskedTextBoxRepeatNewPassword.TextChanged += new EventHandler(checkPasswords);
-            this.checkBoxOverrideHostType.Click += new EventHandler(overrideHostTypeClick);
             this.buttonStartChangePasswords.Click += new EventHandler(startChangePasswordsClick);
-            this.textBox.TextChanged += new EventHandler(textBoxTextChanged);
-
-            this.listView.ItemChecked += new ItemCheckedEventHandler(checkControls);
-            this.maskedTextBoxNewPassword.TextChanged += new EventHandler(checkControls);
-            this.maskedTextBoxRepeatNewPassword.TextChanged += new EventHandler(checkControls);
-            this.checkBoxOverrideHostType.CheckStateChanged += new EventHandler(checkControls);
-            this.comboBoxHostType.SelectedIndexChanged += new EventHandler(checkControls);
+            this.buttonSelectAll.Click += new EventHandler(selectAllClick);
+            this.buttonDeselectAll.Click += new EventHandler(deselectAllClick);
+            this.richTextBoxLog.TextChanged += new EventHandler(logTextChanged);
+            this.radioButtonAutomatic.CheckedChanged += new EventHandler(batchRuleCheckedChanged);
+            this.radioButtonManual.CheckedChanged += new EventHandler(batchRuleCheckedChanged);
+            this.comboBoxAutomaticComplexity.SelectedIndexChanged += new EventHandler(checkControls);
+            this.numericUpDownAutomaticPasswordLength.ValueChanged += new EventHandler(checkControls);
+            this.listView.ItemChecked += new ItemCheckedEventHandler(listViewItemChecked);
 
             this.FormClosing += new FormClosingEventHandler(formClosing);
             this.KeyDown += new KeyEventHandler(form_KeyPress);
+
+            this.treeView.SelectedNode = this.treeView.Nodes[0];
+            this.updateRuleModeState();
+            this.refreshSelectionSummary();
+            this.refreshManualPasswordPanel();
+            this.checkControls();
         }
 
         private bool showPasswordIsChecked() {
-            Debug.WriteLine("showPasswordIsChecked");
-            var viewMenuItem = this.menuStrip.Items[1] as ToolStripMenuItem;
-            ToolStripMenuItem showPasswordsMenuItem = viewMenuItem.DropDownItems[1] as ToolStripMenuItem;
-            return showPasswordsMenuItem != null && showPasswordsMenuItem.Checked;
+            return this.showPasswordsToolStripMenuItem != null && this.showPasswordsToolStripMenuItem.Checked;
         }
 
         private void toggleControls(bool state) {
             this.treeView.Enabled = state;
             this.listView.Enabled = state;
-            this.checkBoxOverrideHostType.Enabled = state && this.comboBoxHostType.Items.Count > 0;
-            this.comboBoxHostType.Enabled = state && this.checkBoxOverrideHostType.Checked;
-            this.maskedTextBoxNewPassword.Enabled = state;
-            this.maskedTextBoxRepeatNewPassword.Enabled = state;
+            this.buttonSelectAll.Enabled = state;
+            this.buttonDeselectAll.Enabled = state;
+            this.radioButtonAutomatic.Enabled = state;
+            this.radioButtonManual.Enabled = state;
+            this.comboBoxAutomaticComplexity.Enabled = state && this.radioButtonAutomatic.Checked;
+            this.numericUpDownAutomaticPasswordLength.Enabled = state && this.radioButtonAutomatic.Checked;
+            this.flowLayoutPanelManualEntries.Enabled = state && this.radioButtonManual.Checked;
             this.buttonStartChangePasswords.Enabled = state;
-            this.buttonShowHidePassword.Enabled = state;
-            this.toolStripMenuItemShowEntriesOfSubgroups.Enabled = state;
+            this.showPasswordsToolStripMenuItem.Enabled = state;
         }
 
-        private bool isHostTypeConfigured() {
-            if (!this.checkBoxOverrideHostType.Checked) {
-                return true;
-            }
-            else {
-                return (this.comboBoxHostType.SelectedIndex > -1);
-            }
+        private void batchRuleCheckedChanged(object sender, EventArgs e) {
+            this.updateRuleModeState();
+            this.checkControls();
         }
 
-        private void overrideHostTypeClick(object sender, EventArgs e) {
-            this.comboBoxHostType.Enabled = this.checkBoxOverrideHostType.Checked;
+        private void updateRuleModeState() {
+            this.groupBoxAutomatic.Enabled = this.radioButtonAutomatic.Checked;
+            this.groupBoxManual.Enabled = this.radioButtonManual.Checked;
         }
 
         private void selectAllClick(object sender, EventArgs e) {
@@ -130,26 +134,23 @@ namespace QuickConnectPlugin {
                 PwEntryListViewItem pwEntryItem = item as PwEntryListViewItem;
                 if (pwEntryItem != null) {
                     pwEntryItem.UpdatePassword(this.showPasswordIsChecked());
-                };
+                }
             }
         }
 
-        private void toolStripMenuItemShowEntriesOfSubgroupsClick(object sender, EventArgs e) {
-            Debug.WriteLine("toolStripMenuItemShowEntriesOfSubgroupsClick");
-            this.treeViewAfterSelect(this, new TreeViewEventArgs(this.treeView.SelectedNode));
-        }
-
         private void treeViewAfterSelect(object sender, TreeViewEventArgs e) {
-            Debug.WriteLine("treeViewAfterSelect");
             IPasswordChangerTreeNode treeNode = e.Node as IPasswordChangerTreeNode;
             if (treeNode != null) {
                 bool showPassword = this.showPasswordIsChecked();
                 this.listView.Items.Clear();
-                foreach (var pwEntry in treeNode.GetEntries(this.toolStripMenuItemShowEntriesOfSubgroups.Checked)) {
+                foreach (var pwEntry in treeNode.GetEntries(true)) {
                     PwEntryListViewItem item = new PwEntryListViewItem(pwEntry, showPassword);
                     this.listView.Items.Add(item);
                 }
             }
+            this.refreshSelectionSummary();
+            this.refreshManualPasswordPanel();
+            this.checkControls();
         }
 
         private void saveLogAsClick(object sender, EventArgs e) {
@@ -159,10 +160,10 @@ namespace QuickConnectPlugin {
                 dialog.CheckFileExists = false;
                 dialog.CheckPathExists = true;
                 dialog.FileName = String.Format("{0}-{1:yyyyMMdd}.log", AssemblyUtils.GetExecutingAssemblyName(), DateTime.Now);
-                var dialogResult = dialog.ShowDialog();
+                dialog.ShowDialog();
                 if (dialog.FileName.Length > 0) {
                     try {
-                        File.WriteAllText(dialog.FileName, this.textBox.Text);
+                        File.WriteAllText(dialog.FileName, this.richTextBoxLog.Text);
                         MessageBox.Show("The log file was saved successfully.", "Save Log As",
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
@@ -175,11 +176,10 @@ namespace QuickConnectPlugin {
         }
 
         private void clearLogClick(object sender, EventArgs e) {
-            this.textBox.Clear();
+            this.richTextBoxLog.Clear();
         }
 
         private void formClosing(object sender, FormClosingEventArgs e) {
-            Debug.WriteLine("formClosing");
             if (this.pwChangerWorker != null && this.pwChangerWorker.IsRunning) {
                 MessageBox.Show(
                     "Password changing is currently running. Press Stop button and wait for the current task to finish before closing the form.",
@@ -189,9 +189,9 @@ namespace QuickConnectPlugin {
             }
         }
 
-        private void textBoxTextChanged(object sender, EventArgs e) {
-            this.toolStripMenuItemSaveLogAs.Enabled = (this.textBox.Text.Length > 0);
-            this.toolStripMenuItemClearLog.Enabled = (this.textBox.Text.Length > 0);
+        private void logTextChanged(object sender, EventArgs e) {
+            this.toolStripMenuItemSaveLogAs.Enabled = (this.richTextBoxLog.Text.Length > 0);
+            this.toolStripMenuItemClearLog.Enabled = (this.richTextBoxLog.Text.Length > 0);
         }
 
         private void startChangePasswordsClick(object sender, EventArgs e) {
@@ -203,31 +203,65 @@ namespace QuickConnectPlugin {
                 }
             }
             else {
-                Debug.WriteLine("buttonStartChangePasswordsClick");
                 if (this.pwChangerWorker == null || !this.pwChangerWorker.IsRunning) {
+                    var requests = this.buildRequests();
+                    if (requests.Count == 0) {
+                        return;
+                    }
+
                     this.toggleControls(false);
-                    var selectedEntries = getSelectedEntries();
-                    // Reset progress bar in case batchPasswordChangerWorker was run before.
                     this.progressBar.Value = 0;
-                    this.progressBar.Maximum = selectedEntries.Count;
-                    Debug.WriteLine(String.Format("selectedEntries.Count: {0}", selectedEntries.Count));
-                    var hostTypeMapper = this.checkBoxOverrideHostType.Checked && this.comboBoxHostType.SelectedIndex > -1 ?
-                        (IHostTypeMapper)new FixedHostTypeMapper((HostType)this.comboBoxHostType.SelectedItem) :
-                        new HostTypeMapper(new HostTypeSafeConverter());
-                    var passwordChangerService = this.pwChangerServiceFactory.Create(hostTypeMapper);
-                    this.pwChangerWorker = new BatchPasswordChangerWorker(passwordChangerService, selectedEntries, maskedTextBoxNewPassword.Text);
+                    this.progressBar.Maximum = requests.Count;
+
+                    var passwordChangerService = this.pwChangerServiceFactory.Create(new HostTypeMapper(new HostTypeSafeConverter()));
+                    this.pwChangerWorker = new BatchPasswordChangerWorker(passwordChangerService, requests);
                     var thread = new Thread(new ThreadStart(() => runBatchPasswordChangerWorker(passwordChangerService)));
                     thread.Name = "FormBatchPasswordChangerThread";
                     thread.IsBackground = true;
                     thread.Start();
                     this.buttonStartChangePasswords.Text = "Stop";
                     this.buttonStartChangePasswords.Enabled = true;
+
+                    this.logStatus(
+                        String.Format("Starting batch password change for {0} server(s) using {1}.",
+                            requests.Count,
+                            this.radioButtonAutomatic.Checked ? "automatic random passwords" : "manual passwords"
+                        ),
+                        Color.Black
+                    );
                 }
             }
         }
 
-        private ICollection<IHostPwEntry> getSelectedEntries() {
-            var entries = new Collection<IHostPwEntry>();
+        private Collection<BatchPasswordChangeRequest> buildRequests() {
+            var selectedEntries = this.getSelectedEntries();
+            var requests = new Collection<BatchPasswordChangeRequest>();
+
+            if (this.radioButtonAutomatic.Checked) {
+                foreach (var entry in selectedEntries) {
+                    requests.Add(
+                        new BatchPasswordChangeRequest(
+                            entry,
+                            PasswordGenerator.Generate(
+                                Decimal.ToInt32(this.numericUpDownAutomaticPasswordLength.Value),
+                                this.getSelectedAutomaticComplexity()
+                            )
+                        )
+                    );
+                }
+                return requests;
+            }
+
+            foreach (var entry in selectedEntries) {
+                var state = this.getManualPasswordState(entry);
+                requests.Add(new BatchPasswordChangeRequest(entry, state.Password));
+            }
+
+            return requests;
+        }
+
+        private Collection<IPasswordChangerHostPwEntry> getSelectedEntries() {
+            var entries = new Collection<IPasswordChangerHostPwEntry>();
             foreach (ListViewItem item in this.listView.Items) {
                 var pwItem = item as PwEntryListViewItem;
                 if (pwItem != null && item.Checked) {
@@ -238,74 +272,225 @@ namespace QuickConnectPlugin {
         }
 
         private void runBatchPasswordChangerWorker(IPasswordChangerService passwordChangerService) {
-            Debug.WriteLine("runBatchPasswordChangerWorker");
             this.pwChangerWorker.SaveDatabaseAfterEachUpdate = true;
+            this.pwChangerWorker.Starting += new PasswordChangeStartingEventHandler(batchPasswordChangerWorkerStarting);
             this.pwChangerWorker.Changed += new PasswordChangedEventHandler(batchPasswordChangerWorkerChanged);
             this.pwChangerWorker.Error += new PasswordChangeErrorEventHandler(batchPasswordChangerWorkerError);
             this.pwChangerWorker.Completed += new PasswordChangeCompletedEventHandler(batchPasswordChangerWorkerCompleted);
             this.pwChangerWorker.Run();
         }
 
+        public void batchPasswordChangerWorkerStarting(object sender, BatchPasswordChangerEventArgs e) {
+            this.Invoke((MethodInvoker)delegate {
+                this.logStatus(
+                    String.Format("[RUNNING] Changing password for {0} on host {1} to {2}.",
+                        e.HostPwEntry.GetUsername(),
+                        e.HostPwEntry.IPAddress,
+                        e.NewPassword
+                    ),
+                    Color.DarkBlue
+                );
+            });
+        }
+
         public void batchPasswordChangerWorkerChanged(object sender, BatchPasswordChangerEventArgs e) {
-            Debug.WriteLine("batchPasswordChangerWorkerChanged");
             this.Invoke((MethodInvoker)delegate {
                 foreach (var item in this.listView.Items) {
                     PwEntryListViewItem pwEntryItem = item as PwEntryListViewItem;
                     if (pwEntryItem != null && e.HostPwEntry.Equals(pwEntryItem.PwEntry)) {
                         pwEntryItem.UpdatePassword(this.showPasswordIsChecked());
                         pwEntryItem.Checked = false;
-                        this.log(String.Format("Password successfully changed for {0} on host {1}.", e.HostPwEntry.GetUsername(), e.HostPwEntry.IPAddress), true);
-                        this.progressBar.Value = e.ProcessedEntries;
-                        this.Changed = true;
-                    };
+                    }
                 }
+
+                this.logStatus(
+                    String.Format("[OK] Password changed for {0} on host {1} and updated in KeePass to {2}.",
+                        e.HostPwEntry.GetUsername(),
+                        e.HostPwEntry.IPAddress,
+                        e.NewPassword
+                    ),
+                    Color.DarkGreen
+                );
+
+                if (!String.IsNullOrEmpty(e.OperationDetails)) {
+                    this.logStatus(String.Format("Server response:{0}{1}", Environment.NewLine, e.OperationDetails), Color.DarkSlateGray);
+                }
+
+                this.progressBar.Value = e.ProcessedEntries;
+                this.Changed = true;
+                this.refreshSelectionSummary();
+                this.refreshManualPasswordPanel();
+                this.checkControls();
             });
         }
 
         public void batchPasswordChangerWorkerError(object sender, BatchPasswordChangerErrorEventArgs e) {
-            Debug.WriteLine("batchPasswordChangerWorkerError");
             this.Invoke((MethodInvoker)delegate {
-                this.log(e.Exception.ToString(), true);
+                this.logStatus(
+                    String.Format("[FAILED] Password change failed for {0} on host {1} to {2}.{3}{4}",
+                        e.HostPwEntry.GetUsername(),
+                        e.HostPwEntry.IPAddress,
+                        e.NewPassword,
+                        Environment.NewLine,
+                        e.Exception
+                    ),
+                    Color.DarkRed
+                );
                 this.progressBar.Value = e.ProcessedEntries;
             });
         }
 
-        private void log(String message, bool appendEOL) {
-            if (this.textBox != null) {
-                if (appendEOL) {
-                    message += "\r\n";
-                }
-                if (this.textBox.Text.Length == 0 || this.textBox.Text.EndsWith("\r\n")) {
-                    this.textBox.AppendText(String.Format("[{0:yyyy-MM-dd HH:mm:ss}] {1}", DateTime.Now, message));
-                }
-                else {
-                    this.textBox.AppendText(String.Format(" {0}", message));
-                }
+        private void logStatus(string message, Color color) {
+            if (this.richTextBoxLog == null) {
+                return;
             }
+
+            var timestampedMessage = String.Format("[{0:yyyy-MM-dd HH:mm:ss}] {1}", DateTime.Now, message);
+            this.richTextBoxLog.SelectionStart = this.richTextBoxLog.TextLength;
+            this.richTextBoxLog.SelectionLength = 0;
+            this.richTextBoxLog.SelectionColor = color;
+            this.richTextBoxLog.AppendText(timestampedMessage + Environment.NewLine);
+            this.richTextBoxLog.SelectionColor = this.richTextBoxLog.ForeColor;
+            this.richTextBoxLog.ScrollToCaret();
         }
 
         public void batchPasswordChangerWorkerCompleted(object sender, EventArgs e) {
-            Debug.WriteLine("batchPasswordChangerWorkerCompleted");
             this.pwChangerWorker = null;
             this.Invoke((MethodInvoker)delegate {
                 this.toggleControls(true);
                 this.checkControls();
                 this.buttonStartChangePasswords.Text = "Start Change Passwords";
+                this.logStatus("Batch password change completed.", Color.Black);
             });
         }
 
-        private void buttonShowHidePasswordClick(object sender, EventArgs e) {
-            Debug.WriteLine("buttonShowHidePassword_Click");
-            this.maskedTextBoxNewPassword.UseSystemPasswordChar = !this.maskedTextBoxNewPassword.UseSystemPasswordChar;
-            this.maskedTextBoxRepeatNewPassword.UseSystemPasswordChar = !this.maskedTextBoxRepeatNewPassword.UseSystemPasswordChar;
-            if (this.maskedTextBoxNewPassword.UseSystemPasswordChar) {
-                this.maskedTextBoxRepeatNewPassword.Text = this.maskedTextBoxNewPassword.Text;
-            }
-            else {
-                this.maskedTextBoxRepeatNewPassword.Text = String.Empty;
-                this.maskedTextBoxRepeatNewPassword.BackColor = Color.Empty;
-            }
+        private void listViewItemChecked(object sender, ItemCheckedEventArgs e) {
+            this.refreshSelectionSummary();
+            this.refreshManualPasswordPanel();
             this.checkControls();
+        }
+
+        private void refreshSelectionSummary() {
+            this.labelSelectionSummary.Text = String.Format(
+                "Checked servers in current view: {0} / {1}",
+                this.getSelectedEntries().Count,
+                this.listView.Items.Count
+            );
+        }
+
+        private void refreshManualPasswordPanel() {
+            this.flowLayoutPanelManualEntries.SuspendLayout();
+            this.flowLayoutPanelManualEntries.Controls.Clear();
+
+            var selectedEntries = this.getSelectedEntries();
+            this.labelManualModeHint.Visible = (selectedEntries.Count == 0);
+
+            foreach (var entry in selectedEntries) {
+                var state = this.getManualPasswordState(entry);
+                this.flowLayoutPanelManualEntries.Controls.Add(this.createManualPasswordRow(entry, state));
+            }
+
+            this.flowLayoutPanelManualEntries.ResumeLayout();
+        }
+
+        private Control createManualPasswordRow(IPasswordChangerHostPwEntry entry, ManualPasswordState state) {
+            var panel = new Panel();
+            panel.Width = this.flowLayoutPanelManualEntries.ClientSize.Width - 28;
+            panel.Height = 58;
+            panel.Margin = new Padding(3, 3, 3, 6);
+            panel.BorderStyle = BorderStyle.FixedSingle;
+
+            var titleLabel = new Label();
+            titleLabel.Location = new Point(8, 8);
+            titleLabel.Size = new Size(210, 18);
+            titleLabel.Text = String.Format("{0} ({1})", entry.Title, entry.IPAddress);
+            titleLabel.AutoEllipsis = true;
+
+            var usernameLabel = new Label();
+            usernameLabel.Location = new Point(8, 30);
+            usernameLabel.Size = new Size(210, 16);
+            usernameLabel.Text = String.Format("User: {0}", entry.GetUsername());
+            usernameLabel.AutoEllipsis = true;
+
+            var newPasswordTextBox = new MaskedTextBox();
+            newPasswordTextBox.Location = new Point(226, 8);
+            newPasswordTextBox.Size = new Size(150, 20);
+            newPasswordTextBox.UseSystemPasswordChar = !state.ShowPassword;
+            newPasswordTextBox.Text = state.Password ?? string.Empty;
+            newPasswordTextBox.TextChanged += delegate(object sender, EventArgs e) {
+                state.Password = newPasswordTextBox.Text;
+                this.checkControls();
+            };
+
+            var repeatPasswordTextBox = new MaskedTextBox();
+            repeatPasswordTextBox.Location = new Point(226, 30);
+            repeatPasswordTextBox.Size = new Size(150, 20);
+            repeatPasswordTextBox.UseSystemPasswordChar = !state.ShowPassword;
+            repeatPasswordTextBox.Text = state.RepeatPassword ?? string.Empty;
+            repeatPasswordTextBox.TextChanged += delegate(object sender, EventArgs e) {
+                state.RepeatPassword = repeatPasswordTextBox.Text;
+                this.checkControls();
+            };
+
+            var showButton = new Button();
+            showButton.Location = new Point(384, 8);
+            showButton.Size = new Size(32, 20);
+            showButton.Text = "...";
+            showButton.Click += delegate(object sender, EventArgs e) {
+                state.ShowPassword = !state.ShowPassword;
+                newPasswordTextBox.UseSystemPasswordChar = !state.ShowPassword;
+                repeatPasswordTextBox.UseSystemPasswordChar = !state.ShowPassword;
+            };
+
+            var generateButton = new Button();
+            generateButton.Location = new Point(422, 8);
+            generateButton.Size = new Size(100, 42);
+            generateButton.Text = "Generate 16";
+            generateButton.FlatStyle = FlatStyle.Popup;
+            generateButton.BackColor = Color.Honeydew;
+            generateButton.Click += delegate(object sender, EventArgs e) {
+                var generatedPassword = PasswordGenerator.Generate(16, PasswordComplexity.High);
+                state.Password = generatedPassword;
+                state.RepeatPassword = generatedPassword;
+                newPasswordTextBox.Text = generatedPassword;
+                repeatPasswordTextBox.Text = generatedPassword;
+                this.checkControls();
+            };
+
+            var newPasswordLabel = new Label();
+            newPasswordLabel.Location = new Point(528, 10);
+            newPasswordLabel.Size = new Size(40, 13);
+            newPasswordLabel.Text = "New:";
+
+            var repeatPasswordLabel = new Label();
+            repeatPasswordLabel.Location = new Point(528, 32);
+            repeatPasswordLabel.Size = new Size(48, 13);
+            repeatPasswordLabel.Text = "Repeat:";
+
+            panel.Controls.Add(titleLabel);
+            panel.Controls.Add(usernameLabel);
+            panel.Controls.Add(newPasswordTextBox);
+            panel.Controls.Add(repeatPasswordTextBox);
+            panel.Controls.Add(showButton);
+            panel.Controls.Add(generateButton);
+            panel.Controls.Add(newPasswordLabel);
+            panel.Controls.Add(repeatPasswordLabel);
+
+            return panel;
+        }
+
+        private ManualPasswordState getManualPasswordState(IPasswordChangerHostPwEntry entry) {
+            var key = this.getEntryKey(entry);
+            ManualPasswordState state = null;
+            if (!this.manualPasswordStates.TryGetValue(key, out state)) {
+                state = new ManualPasswordState();
+                this.manualPasswordStates.Add(key, state);
+            }
+            return state;
+        }
+
+        private string getEntryKey(IHostPwEntry entry) {
+            return string.Format("{0}|{1}|{2}", entry.IPAddress, entry.GetUsername(), (entry as IHasTitle) != null ? ((IHasTitle)entry).Title : string.Empty);
         }
 
         private void checkControls(object sender, EventArgs e) {
@@ -313,45 +498,35 @@ namespace QuickConnectPlugin {
         }
 
         private void checkControls() {
-            Debug.WriteLine("checkControls");
             if (this.pwChangerWorker != null && this.pwChangerWorker.IsRunning) {
                 return;
             }
-            if (this.getSelectedEntries().Count > 0 &&
-                (this.maskedTextBoxNewPassword.UseSystemPasswordChar && this.passwordsMatch() ||
-                !this.maskedTextBoxNewPassword.UseSystemPasswordChar && FormsUtils.HasText(this.maskedTextBoxNewPassword)) &&
-                this.isHostTypeConfigured()) {
-                this.buttonStartChangePasswords.Enabled = true;
-            }
-            else {
-                this.buttonStartChangePasswords.Enabled = false;
-            }
-            this.maskedTextBoxRepeatNewPassword.Enabled = this.maskedTextBoxNewPassword.UseSystemPasswordChar;
+
+            var hasSelectedEntries = this.getSelectedEntries().Count > 0;
+            var hasValidPasswordRule = this.radioButtonAutomatic.Checked || this.hasValidManualPasswords();
+
+            this.buttonStartChangePasswords.Enabled = hasSelectedEntries && hasValidPasswordRule;
         }
 
-        private bool passwordsMatch() {
-            Debug.WriteLine("passwordsMatch");
-            return FormsUtils.HasText(this.maskedTextBoxNewPassword) &&
-                this.maskedTextBoxNewPassword.Text.Equals(this.maskedTextBoxRepeatNewPassword.Text);
+        private bool hasValidManualPasswords() {
+            foreach (var entry in this.getSelectedEntries()) {
+                var state = this.getManualPasswordState(entry);
+                if (String.IsNullOrEmpty(state.Password) || !state.Password.Equals(state.RepeatPassword)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        private void checkPasswords(object sender, EventArgs e) {
-            Debug.WriteLine("checkPasswords");
-            if (this.maskedTextBoxNewPassword.UseSystemPasswordChar) {
-                if (FormsUtils.HasText(this.maskedTextBoxNewPassword) && this.passwordsMatch()) {
-                    this.maskedTextBoxRepeatNewPassword.BackColor = Color.Empty;
-                }
-                else if (!FormsUtils.HasText(this.maskedTextBoxNewPassword) && !FormsUtils.HasText(this.maskedTextBoxRepeatNewPassword)) {
-                    this.maskedTextBoxRepeatNewPassword.BackColor = Color.Empty;
-                }
-                else {
-                    this.maskedTextBoxRepeatNewPassword.BackColor = ColorTranslator.FromHtml("#FFC0C0");
-                }
+        private PasswordComplexity getSelectedAutomaticComplexity() {
+            if (this.comboBoxAutomaticComplexity.SelectedIndex == 0) {
+                return PasswordComplexity.Low;
             }
-            else {
-                this.maskedTextBoxNewPassword.ResetBackColor();
-                this.maskedTextBoxRepeatNewPassword.ResetBackColor();
+            if (this.comboBoxAutomaticComplexity.SelectedIndex == 1) {
+                return PasswordComplexity.Medium;
             }
+            return PasswordComplexity.High;
         }
 
         private void form_KeyPress(object sender, KeyEventArgs e) {
@@ -360,6 +535,12 @@ namespace QuickConnectPlugin {
                     this.Close();
                 }
             }
+        }
+
+        private class ManualPasswordState {
+            public string Password { get; set; }
+            public string RepeatPassword { get; set; }
+            public bool ShowPassword { get; set; }
         }
     }
 }

@@ -4,9 +4,15 @@ namespace QuickConnectPlugin.PasswordChanger {
 
     [PermissionSetAttribute(SecurityAction.Demand, Name = "FullTrust")]
     [PermissionSetAttribute(SecurityAction.InheritanceDemand, Name = "FullTrust")]
-    public class WindowsPasswordChanger : IPasswordChanger {
+    public class WindowsPasswordChanger : IPasswordChanger, IPasswordChangerResultInfo {
 
         private PsPasswdWrapper wrapper;
+
+        public string LastOperationDetails {
+            get {
+                return this.wrapper.LastOperationDetails;
+            }
+        }
 
         public WindowsPasswordChanger(PsPasswdWrapper psPasswdWrapper) {
             this.wrapper = psPasswdWrapper;

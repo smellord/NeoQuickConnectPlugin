@@ -11,7 +11,8 @@ namespace QuickConnectPlugin.PasswordChanger {
             else if (connectionMethod == ConnectionMethodType.vSphereClient) {
                 return HostType.ESXi;
             }
-            else if (connectionMethod == ConnectionMethodType.PuttySSH) {
+            else if (connectionMethod == ConnectionMethodType.PuttySSH ||
+                connectionMethod == ConnectionMethodType.WindowsTerminalSSH) {
                 return HostType.Linux;
             }
             else {

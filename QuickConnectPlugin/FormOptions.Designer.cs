@@ -29,13 +29,20 @@
             this.pictureBoxWinScpPathWarningIcon = new System.Windows.Forms.PictureBox();
             this.labelWinScpPathWarningMessage = new System.Windows.Forms.Label();
             this.buttonConfigureWinScpPath = new System.Windows.Forms.Button();
+            this.buttonInstallWinScp = new System.Windows.Forms.Button();
+            this.buttonAutoSetWinScpPath = new System.Windows.Forms.Button();
             this.textBoxWinScpPath = new System.Windows.Forms.TextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.pictureBoxPuttyPathWarningIcon = new System.Windows.Forms.PictureBox();
             this.labelPuttyPathWarningMessage = new System.Windows.Forms.Label();
             this.buttonConfigurePuttyPath = new System.Windows.Forms.Button();
+            this.buttonInstallPutty = new System.Windows.Forms.Button();
+            this.buttonAutoSetPuttyPath = new System.Windows.Forms.Button();
             this.textBoxPuttyPath = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.checkBoxShowAllSshOptions = new System.Windows.Forms.CheckBox();
+            this.comboBoxSshConnectionType = new System.Windows.Forms.ComboBox();
+            this.labelSshConnectionType = new System.Windows.Forms.Label();
             this.checkBoxDisableCLIPasswordForPutty = new System.Windows.Forms.CheckBox();
             this.checkBoxCompatibleMode = new System.Windows.Forms.CheckBox();
             this.checkBoxEnable = new System.Windows.Forms.CheckBox();
@@ -47,8 +54,11 @@
             this.pictureBoxPsPasswdPathWarningIcon = new System.Windows.Forms.PictureBox();
             this.labelPsPasswdPathWarningMessage = new System.Windows.Forms.Label();
             this.buttonConfigurePsPasswdPath = new System.Windows.Forms.Button();
+            this.buttonDownloadPsPasswd = new System.Windows.Forms.Button();
             this.textBoxPsPasswdPath = new System.Windows.Forms.TextBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.comboBoxWindowsPasswordResetMethod = new System.Windows.Forms.ComboBox();
+            this.labelWindowsPasswordResetMethod = new System.Windows.Forms.Label();
             this.checkBoxAddChangePasswordItem = new System.Windows.Forms.CheckBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.groupBox12 = new System.Windows.Forms.GroupBox();
@@ -102,7 +112,7 @@
             this.tabControl.Location = new System.Drawing.Point(12, 12);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
-            this.tabControl.Size = new System.Drawing.Size(305, 294);
+            this.tabControl.Size = new System.Drawing.Size(305, 400);
             this.tabControl.TabIndex = 0;
             // 
             // tabPage1
@@ -113,7 +123,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(297, 268);
+            this.tabPage1.Size = new System.Drawing.Size(297, 374);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "General";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -123,10 +133,12 @@
             this.groupBox3.Controls.Add(this.pictureBoxWinScpPathWarningIcon);
             this.groupBox3.Controls.Add(this.labelWinScpPathWarningMessage);
             this.groupBox3.Controls.Add(this.buttonConfigureWinScpPath);
+            this.groupBox3.Controls.Add(this.buttonInstallWinScp);
+            this.groupBox3.Controls.Add(this.buttonAutoSetWinScpPath);
             this.groupBox3.Controls.Add(this.textBoxWinScpPath);
-            this.groupBox3.Location = new System.Drawing.Point(3, 184);
+            this.groupBox3.Location = new System.Drawing.Point(3, 261);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(290, 80);
+            this.groupBox3.Size = new System.Drawing.Size(290, 110);
             this.groupBox3.TabIndex = 8;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "WinSCP Path";
@@ -135,7 +147,7 @@
             // 
             this.pictureBoxWinScpPathWarningIcon.ErrorImage = null;
             this.pictureBoxWinScpPathWarningIcon.Image = global::QuickConnectPlugin.Properties.Resources.important;
-            this.pictureBoxWinScpPathWarningIcon.Location = new System.Drawing.Point(19, 48);
+            this.pictureBoxWinScpPathWarningIcon.Location = new System.Drawing.Point(19, 50);
             this.pictureBoxWinScpPathWarningIcon.Name = "pictureBoxWinScpPathWarningIcon";
             this.pictureBoxWinScpPathWarningIcon.Size = new System.Drawing.Size(16, 16);
             this.pictureBoxWinScpPathWarningIcon.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -145,7 +157,7 @@
             // labelWinScpPathWarningMessage
             // 
             this.labelWinScpPathWarningMessage.AutoSize = true;
-            this.labelWinScpPathWarningMessage.Location = new System.Drawing.Point(38, 50);
+            this.labelWinScpPathWarningMessage.Location = new System.Drawing.Point(38, 52);
             this.labelWinScpPathWarningMessage.Name = "labelWinScpPathWarningMessage";
             this.labelWinScpPathWarningMessage.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.labelWinScpPathWarningMessage.Size = new System.Drawing.Size(151, 13);
@@ -155,13 +167,33 @@
             // 
             // buttonConfigureWinScpPath
             // 
-            this.buttonConfigureWinScpPath.Location = new System.Drawing.Point(207, 44);
+            this.buttonConfigureWinScpPath.Location = new System.Drawing.Point(19, 74);
             this.buttonConfigureWinScpPath.Name = "buttonConfigureWinScpPath";
-            this.buttonConfigureWinScpPath.Size = new System.Drawing.Size(77, 24);
+            this.buttonConfigureWinScpPath.Size = new System.Drawing.Size(82, 24);
             this.buttonConfigureWinScpPath.TabIndex = 4;
             this.buttonConfigureWinScpPath.Text = "Configure...";
             this.buttonConfigureWinScpPath.UseVisualStyleBackColor = true;
             this.buttonConfigureWinScpPath.Click += new System.EventHandler(this.ButtonConfigureWinScpPath_Click);
+            // 
+            // buttonInstallWinScp
+            // 
+            this.buttonInstallWinScp.Location = new System.Drawing.Point(195, 74);
+            this.buttonInstallWinScp.Name = "buttonInstallWinScp";
+            this.buttonInstallWinScp.Size = new System.Drawing.Size(82, 24);
+            this.buttonInstallWinScp.TabIndex = 6;
+            this.buttonInstallWinScp.Text = "Install";
+            this.buttonInstallWinScp.UseVisualStyleBackColor = true;
+            this.buttonInstallWinScp.Click += new System.EventHandler(this.ButtonInstallWinScp_Click);
+            // 
+            // buttonAutoSetWinScpPath
+            // 
+            this.buttonAutoSetWinScpPath.Location = new System.Drawing.Point(107, 74);
+            this.buttonAutoSetWinScpPath.Name = "buttonAutoSetWinScpPath";
+            this.buttonAutoSetWinScpPath.Size = new System.Drawing.Size(82, 24);
+            this.buttonAutoSetWinScpPath.TabIndex = 5;
+            this.buttonAutoSetWinScpPath.Text = "Auto set";
+            this.buttonAutoSetWinScpPath.UseVisualStyleBackColor = true;
+            this.buttonAutoSetWinScpPath.Click += new System.EventHandler(this.ButtonAutoSetWinScpPath_Click);
             // 
             // textBoxWinScpPath
             // 
@@ -175,10 +207,12 @@
             this.groupBox2.Controls.Add(this.pictureBoxPuttyPathWarningIcon);
             this.groupBox2.Controls.Add(this.labelPuttyPathWarningMessage);
             this.groupBox2.Controls.Add(this.buttonConfigurePuttyPath);
+            this.groupBox2.Controls.Add(this.buttonInstallPutty);
+            this.groupBox2.Controls.Add(this.buttonAutoSetPuttyPath);
             this.groupBox2.Controls.Add(this.textBoxPuttyPath);
-            this.groupBox2.Location = new System.Drawing.Point(3, 97);
+            this.groupBox2.Location = new System.Drawing.Point(3, 147);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(290, 80);
+            this.groupBox2.Size = new System.Drawing.Size(290, 110);
             this.groupBox2.TabIndex = 4;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "PuTTY Path";
@@ -187,7 +221,7 @@
             // 
             this.pictureBoxPuttyPathWarningIcon.ErrorImage = null;
             this.pictureBoxPuttyPathWarningIcon.Image = global::QuickConnectPlugin.Properties.Resources.important;
-            this.pictureBoxPuttyPathWarningIcon.Location = new System.Drawing.Point(19, 49);
+            this.pictureBoxPuttyPathWarningIcon.Location = new System.Drawing.Point(19, 50);
             this.pictureBoxPuttyPathWarningIcon.Margin = new System.Windows.Forms.Padding(2);
             this.pictureBoxPuttyPathWarningIcon.Name = "pictureBoxPuttyPathWarningIcon";
             this.pictureBoxPuttyPathWarningIcon.Size = new System.Drawing.Size(16, 16);
@@ -198,7 +232,7 @@
             // labelPuttyPathWarningMessage
             // 
             this.labelPuttyPathWarningMessage.AutoSize = true;
-            this.labelPuttyPathWarningMessage.Location = new System.Drawing.Point(38, 51);
+            this.labelPuttyPathWarningMessage.Location = new System.Drawing.Point(38, 52);
             this.labelPuttyPathWarningMessage.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelPuttyPathWarningMessage.Name = "labelPuttyPathWarningMessage";
             this.labelPuttyPathWarningMessage.RightToLeft = System.Windows.Forms.RightToLeft.No;
@@ -209,13 +243,33 @@
             // 
             // buttonConfigurePuttyPath
             // 
-            this.buttonConfigurePuttyPath.Location = new System.Drawing.Point(207, 45);
+            this.buttonConfigurePuttyPath.Location = new System.Drawing.Point(19, 74);
             this.buttonConfigurePuttyPath.Name = "buttonConfigurePuttyPath";
-            this.buttonConfigurePuttyPath.Size = new System.Drawing.Size(77, 24);
+            this.buttonConfigurePuttyPath.Size = new System.Drawing.Size(82, 24);
             this.buttonConfigurePuttyPath.TabIndex = 4;
             this.buttonConfigurePuttyPath.Text = "Configure...";
             this.buttonConfigurePuttyPath.UseVisualStyleBackColor = true;
             this.buttonConfigurePuttyPath.Click += new System.EventHandler(this.ButtonConfigurePuttyPath_Click);
+            // 
+            // buttonInstallPutty
+            // 
+            this.buttonInstallPutty.Location = new System.Drawing.Point(195, 74);
+            this.buttonInstallPutty.Name = "buttonInstallPutty";
+            this.buttonInstallPutty.Size = new System.Drawing.Size(82, 24);
+            this.buttonInstallPutty.TabIndex = 6;
+            this.buttonInstallPutty.Text = "Install";
+            this.buttonInstallPutty.UseVisualStyleBackColor = true;
+            this.buttonInstallPutty.Click += new System.EventHandler(this.ButtonInstallPutty_Click);
+            // 
+            // buttonAutoSetPuttyPath
+            // 
+            this.buttonAutoSetPuttyPath.Location = new System.Drawing.Point(107, 74);
+            this.buttonAutoSetPuttyPath.Name = "buttonAutoSetPuttyPath";
+            this.buttonAutoSetPuttyPath.Size = new System.Drawing.Size(82, 24);
+            this.buttonAutoSetPuttyPath.TabIndex = 5;
+            this.buttonAutoSetPuttyPath.Text = "Auto set";
+            this.buttonAutoSetPuttyPath.UseVisualStyleBackColor = true;
+            this.buttonAutoSetPuttyPath.Click += new System.EventHandler(this.ButtonAutoSetPuttyPath_Click);
             // 
             // textBoxPuttyPath
             // 
@@ -226,15 +280,46 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.checkBoxShowAllSshOptions);
+            this.groupBox1.Controls.Add(this.comboBoxSshConnectionType);
+            this.groupBox1.Controls.Add(this.labelSshConnectionType);
             this.groupBox1.Controls.Add(this.checkBoxDisableCLIPasswordForPutty);
             this.groupBox1.Controls.Add(this.checkBoxCompatibleMode);
             this.groupBox1.Controls.Add(this.checkBoxEnable);
             this.groupBox1.Location = new System.Drawing.Point(3, 1);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(290, 90);
+            this.groupBox1.Size = new System.Drawing.Size(290, 140);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Settings";
+            // 
+            // checkBoxShowAllSshOptions
+            // 
+            this.checkBoxShowAllSshOptions.AutoSize = true;
+            this.checkBoxShowAllSshOptions.Location = new System.Drawing.Point(19, 114);
+            this.checkBoxShowAllSshOptions.Name = "checkBoxShowAllSshOptions";
+            this.checkBoxShowAllSshOptions.Size = new System.Drawing.Size(62, 17);
+            this.checkBoxShowAllSshOptions.TabIndex = 5;
+            this.checkBoxShowAllSshOptions.Text = "Show all";
+            this.checkBoxShowAllSshOptions.UseVisualStyleBackColor = true;
+            // 
+            // comboBoxSshConnectionType
+            // 
+            this.comboBoxSshConnectionType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxSshConnectionType.FormattingEnabled = true;
+            this.comboBoxSshConnectionType.Location = new System.Drawing.Point(110, 87);
+            this.comboBoxSshConnectionType.Name = "comboBoxSshConnectionType";
+            this.comboBoxSshConnectionType.Size = new System.Drawing.Size(167, 21);
+            this.comboBoxSshConnectionType.TabIndex = 4;
+            // 
+            // labelSshConnectionType
+            // 
+            this.labelSshConnectionType.AutoSize = true;
+            this.labelSshConnectionType.Location = new System.Drawing.Point(58, 90);
+            this.labelSshConnectionType.Name = "labelSshConnectionType";
+            this.labelSshConnectionType.Size = new System.Drawing.Size(53, 13);
+            this.labelSshConnectionType.TabIndex = 3;
+            this.labelSshConnectionType.Text = "SSH Type";
             // 
             // checkBoxDisableCLIPasswordForPutty
             // 
@@ -274,7 +359,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(297, 268);
+            this.tabPage2.Size = new System.Drawing.Size(297, 374);
             this.tabPage2.TabIndex = 2;
             this.tabPage2.Text = "Password Changer";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -283,7 +368,7 @@
             // 
             this.groupBox6.Controls.Add(this.pictureBoxVSpherePowerCLIStatusIcon);
             this.groupBox6.Controls.Add(this.labelVSpherePowerCLIStatusMessage);
-            this.groupBox6.Location = new System.Drawing.Point(3, 184);
+            this.groupBox6.Location = new System.Drawing.Point(3, 243);
             this.groupBox6.Name = "groupBox6";
             this.groupBox6.Size = new System.Drawing.Size(290, 80);
             this.groupBox6.TabIndex = 8;
@@ -319,10 +404,11 @@
             this.groupBox5.Controls.Add(this.pictureBoxPsPasswdPathWarningIcon);
             this.groupBox5.Controls.Add(this.labelPsPasswdPathWarningMessage);
             this.groupBox5.Controls.Add(this.buttonConfigurePsPasswdPath);
+            this.groupBox5.Controls.Add(this.buttonDownloadPsPasswd);
             this.groupBox5.Controls.Add(this.textBoxPsPasswdPath);
-            this.groupBox5.Location = new System.Drawing.Point(3, 97);
+            this.groupBox5.Location = new System.Drawing.Point(3, 127);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(290, 80);
+            this.groupBox5.Size = new System.Drawing.Size(290, 110);
             this.groupBox5.TabIndex = 5;
             this.groupBox5.TabStop = false;
             this.groupBox5.Text = "PsPasswd Path";
@@ -331,7 +417,7 @@
             // 
             this.pictureBoxPsPasswdPathWarningIcon.ErrorImage = null;
             this.pictureBoxPsPasswdPathWarningIcon.Image = global::QuickConnectPlugin.Properties.Resources.important;
-            this.pictureBoxPsPasswdPathWarningIcon.Location = new System.Drawing.Point(19, 49);
+            this.pictureBoxPsPasswdPathWarningIcon.Location = new System.Drawing.Point(19, 50);
             this.pictureBoxPsPasswdPathWarningIcon.Margin = new System.Windows.Forms.Padding(2);
             this.pictureBoxPsPasswdPathWarningIcon.Name = "pictureBoxPsPasswdPathWarningIcon";
             this.pictureBoxPsPasswdPathWarningIcon.Size = new System.Drawing.Size(16, 16);
@@ -342,7 +428,7 @@
             // labelPsPasswdPathWarningMessage
             // 
             this.labelPsPasswdPathWarningMessage.AutoSize = true;
-            this.labelPsPasswdPathWarningMessage.Location = new System.Drawing.Point(38, 51);
+            this.labelPsPasswdPathWarningMessage.Location = new System.Drawing.Point(38, 52);
             this.labelPsPasswdPathWarningMessage.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelPsPasswdPathWarningMessage.Name = "labelPsPasswdPathWarningMessage";
             this.labelPsPasswdPathWarningMessage.RightToLeft = System.Windows.Forms.RightToLeft.No;
@@ -353,13 +439,23 @@
             // 
             // buttonConfigurePsPasswdPath
             // 
-            this.buttonConfigurePsPasswdPath.Location = new System.Drawing.Point(207, 45);
+            this.buttonConfigurePsPasswdPath.Location = new System.Drawing.Point(19, 74);
             this.buttonConfigurePsPasswdPath.Name = "buttonConfigurePsPasswdPath";
-            this.buttonConfigurePsPasswdPath.Size = new System.Drawing.Size(77, 24);
+            this.buttonConfigurePsPasswdPath.Size = new System.Drawing.Size(100, 24);
             this.buttonConfigurePsPasswdPath.TabIndex = 4;
             this.buttonConfigurePsPasswdPath.Text = "Configure...";
             this.buttonConfigurePsPasswdPath.UseVisualStyleBackColor = true;
             this.buttonConfigurePsPasswdPath.Click += new System.EventHandler(this.ButtonConfigurePsPasswdPath_Click);
+            // 
+            // buttonDownloadPsPasswd
+            // 
+            this.buttonDownloadPsPasswd.Location = new System.Drawing.Point(125, 74);
+            this.buttonDownloadPsPasswd.Name = "buttonDownloadPsPasswd";
+            this.buttonDownloadPsPasswd.Size = new System.Drawing.Size(100, 24);
+            this.buttonDownloadPsPasswd.TabIndex = 5;
+            this.buttonDownloadPsPasswd.Text = "Install PsTools";
+            this.buttonDownloadPsPasswd.UseVisualStyleBackColor = true;
+            this.buttonDownloadPsPasswd.Click += new System.EventHandler(this.ButtonDownloadPsPasswd_Click);
             // 
             // textBoxPsPasswdPath
             // 
@@ -370,13 +466,32 @@
             // 
             // groupBox4
             // 
+            this.groupBox4.Controls.Add(this.comboBoxWindowsPasswordResetMethod);
+            this.groupBox4.Controls.Add(this.labelWindowsPasswordResetMethod);
             this.groupBox4.Controls.Add(this.checkBoxAddChangePasswordItem);
             this.groupBox4.Location = new System.Drawing.Point(3, 1);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(290, 90);
+            this.groupBox4.Size = new System.Drawing.Size(290, 120);
             this.groupBox4.TabIndex = 3;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Settings";
+            // 
+            // comboBoxWindowsPasswordResetMethod
+            // 
+            this.comboBoxWindowsPasswordResetMethod.FormattingEnabled = true;
+            this.comboBoxWindowsPasswordResetMethod.Location = new System.Drawing.Point(154, 51);
+            this.comboBoxWindowsPasswordResetMethod.Name = "comboBoxWindowsPasswordResetMethod";
+            this.comboBoxWindowsPasswordResetMethod.Size = new System.Drawing.Size(126, 21);
+            this.comboBoxWindowsPasswordResetMethod.TabIndex = 3;
+            // 
+            // labelWindowsPasswordResetMethod
+            // 
+            this.labelWindowsPasswordResetMethod.AutoSize = true;
+            this.labelWindowsPasswordResetMethod.Location = new System.Drawing.Point(19, 54);
+            this.labelWindowsPasswordResetMethod.Name = "labelWindowsPasswordResetMethod";
+            this.labelWindowsPasswordResetMethod.Size = new System.Drawing.Size(129, 13);
+            this.labelWindowsPasswordResetMethod.TabIndex = 2;
+            this.labelWindowsPasswordResetMethod.Text = "Windows reset method:";
             // 
             // checkBoxAddChangePasswordItem
             // 
@@ -393,7 +508,7 @@
             this.tabPage3.Controls.Add(this.groupBox12);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(297, 268);
+            this.tabPage3.Size = new System.Drawing.Size(297, 374);
             this.tabPage3.TabIndex = 1;
             this.tabPage3.Text = "Map Fields";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -485,7 +600,7 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(297, 268);
+            this.tabPage4.Size = new System.Drawing.Size(297, 374);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Shortcut Keys";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -589,7 +704,7 @@
             // 
             // buttonApply
             // 
-            this.buttonApply.Location = new System.Drawing.Point(238, 313);
+            this.buttonApply.Location = new System.Drawing.Point(238, 409);
             this.buttonApply.Name = "buttonApply";
             this.buttonApply.Size = new System.Drawing.Size(75, 23);
             this.buttonApply.TabIndex = 1;
@@ -600,7 +715,7 @@
             // buttonCancel
             // 
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(157, 313);
+            this.buttonCancel.Location = new System.Drawing.Point(157, 409);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 2;
@@ -610,7 +725,7 @@
             // buttonOK
             // 
             this.buttonOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.buttonOK.Location = new System.Drawing.Point(76, 313);
+            this.buttonOK.Location = new System.Drawing.Point(76, 409);
             this.buttonOK.Name = "buttonOK";
             this.buttonOK.Size = new System.Drawing.Size(75, 23);
             this.buttonOK.TabIndex = 3;
@@ -624,7 +739,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
-            this.ClientSize = new System.Drawing.Size(329, 342);
+            this.ClientSize = new System.Drawing.Size(329, 448);
             this.Controls.Add(this.buttonOK);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonApply);
@@ -678,6 +793,8 @@
         private System.Windows.Forms.Button buttonOK;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button buttonConfigurePuttyPath;
+        private System.Windows.Forms.Button buttonInstallPutty;
+        private System.Windows.Forms.Button buttonAutoSetPuttyPath;
         private System.Windows.Forms.TextBox textBoxPuttyPath;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.GroupBox groupBox2;
@@ -689,6 +806,8 @@
         private System.Windows.Forms.PictureBox pictureBoxWinScpPathWarningIcon;
         private System.Windows.Forms.Label labelWinScpPathWarningMessage;
         private System.Windows.Forms.Button buttonConfigureWinScpPath;
+        private System.Windows.Forms.Button buttonInstallWinScp;
+        private System.Windows.Forms.Button buttonAutoSetWinScpPath;
         private System.Windows.Forms.TextBox textBoxWinScpPath;
         private System.Windows.Forms.GroupBox groupBox12;
         private System.Windows.Forms.ComboBox comboBoxAdditionalOptionsMapFieldName;
@@ -703,13 +822,19 @@
         private System.Windows.Forms.PictureBox pictureBoxPsPasswdPathWarningIcon;
         private System.Windows.Forms.Label labelPsPasswdPathWarningMessage;
         private System.Windows.Forms.Button buttonConfigurePsPasswdPath;
+        private System.Windows.Forms.Button buttonDownloadPsPasswd;
         private System.Windows.Forms.TextBox textBoxPsPasswdPath;
         private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.ComboBox comboBoxWindowsPasswordResetMethod;
+        private System.Windows.Forms.Label labelWindowsPasswordResetMethod;
         private System.Windows.Forms.CheckBox checkBoxAddChangePasswordItem;
         private System.Windows.Forms.GroupBox groupBox6;
         private System.Windows.Forms.PictureBox pictureBoxVSpherePowerCLIStatusIcon;
         private System.Windows.Forms.Label labelVSpherePowerCLIStatusMessage;
         private System.Windows.Forms.CheckBox checkBoxDisableCLIPasswordForPutty;
+        private System.Windows.Forms.CheckBox checkBoxShowAllSshOptions;
+        private System.Windows.Forms.ComboBox comboBoxSshConnectionType;
+        private System.Windows.Forms.Label labelSshConnectionType;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.GroupBox groupBox7;
         private System.Windows.Forms.Label labelWinScpShortcutKey;

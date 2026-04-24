@@ -1,8 +1,9 @@
 ﻿namespace QuickConnectPlugin.PasswordChanger {
 
-    public class LinuxPasswordChangerEx : IPasswordChangerEx {
+    public class LinuxPasswordChangerEx : IPasswordChangerEx, IPasswordChangerResultInfo {
 
         private ILinuxPasswordChangerFactory passwordChangerFactory;
+        public string LastOperationDetails { get; private set; }
 
         public LinuxPasswordChangerEx(ILinuxPasswordChangerFactory passwordChangerFactory) {
             this.passwordChangerFactory = passwordChangerFactory;
@@ -16,6 +17,8 @@
                                                     this.passwordChangerFactory.Create();
 
             passwordChanger.ChangePassword(hostPwEntry.IPAddress, hostPwEntry.GetUsername(), hostPwEntry.GetPassword(), newPassword);
+            var resultInfo = passwordChanger as IPasswordChangerResultInfo;
+            this.LastOperationDetails = resultInfo == null ? null : resultInfo.LastOperationDetails;
         }
     }
 }

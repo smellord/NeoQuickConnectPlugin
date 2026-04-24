@@ -18,5 +18,17 @@ namespace QuickConnectPlugin.Services {
             }
             return results;
         }
+
+        public ICollection<String> GetPuttyHostKeys() {
+            ICollection<String> results = new Collection<String>();
+            using (RegistryKey key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey("SOFTWARE\\SimonTatham\\PuTTY\\SshHostKeys")) {
+                if (key != null) {
+                    foreach (String valueName in key.GetValueNames()) {
+                        results.Add(valueName);
+                    }
+                }
+            }
+            return results;
+        }
     }
 }

@@ -15,6 +15,7 @@ namespace QuickConnectPlugin {
         private IPasswordChangerService pwChangerService;
         private BatchPasswordChangerWorker pwChangerWorker;
         private IHostPwEntry hostPwEntry;
+        private const int DefaultGeneratedPasswordLength = 16;
         
         public bool Changed { get; private set; }
 
@@ -25,12 +26,21 @@ namespace QuickConnectPlugin {
             this.pwChangerService = pwChangerService;
 
             this.Text = this.Text.Replace("{}", String.Format("{0}@{1}", hostPwEntry.GetUsername(), hostPwEntry.IPAddress));
+            this.comboBoxPasswordComplexity.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.comboBoxPasswordComplexity.Items.Add("Low");
+            this.comboBoxPasswordComplexity.Items.Add("Medium");
+            this.comboBoxPasswordComplexity.Items.Add("High");
+            this.comboBoxPasswordComplexity.SelectedIndex = 2;
+            this.numericUpDownPasswordLength.Minimum = 4;
+            this.numericUpDownPasswordLength.Maximum = 128;
+            this.numericUpDownPasswordLength.Value = DefaultGeneratedPasswordLength;
 
             this.maskedTextBoxNewPassword.TextChanged += new EventHandler(checkPasswords);
             this.maskedTextBoxRepeatNewPassword.TextChanged += new EventHandler(checkPasswords);
             this.maskedTextBoxNewPassword.TextChanged += new EventHandler(checkControls);
             this.maskedTextBoxRepeatNewPassword.TextChanged += new EventHandler(checkControls);
             this.buttonChangePassword.Enabled = false;
+            this.buttonSaveToEntry.Enabled = false;
 
             this.FormClosing += new FormClosingEventHandler(formClosing);
             this.KeyDown += new KeyEventHandler(form_KeyPress);
@@ -57,10 +67,60 @@ namespace QuickConnectPlugin {
             this.pwChangerWorker.Run();
         }
 
+        private void generatePasswordClick(object sender, EventArgs e) {
+            Debug.WriteLine("generatePasswordClick");
+            var generatedPassword = PasswordGenerator.Generate(
+                Decimal.ToInt32(this.numericUpDownPasswordLength.Value),
+                this.getSelectedComplexity()
+            );
+
+            this.maskedTextBoxNewPassword.Text = generatedPassword;
+            this.maskedTextBoxRepeatNewPassword.Text = generatedPassword;
+            this.maskedTextBoxNewPassword.Focus();
+            this.maskedTextBoxNewPassword.SelectionStart = this.maskedTextBoxNewPassword.TextLength;
+            this.checkPasswords(null, EventArgs.Empty);
+            this.checkControls();
+        }
+
+        private void savePasswordToEntryClick(object sender, EventArgs e) {
+            Debug.WriteLine("savePasswordToEntryClick");
+            if (this.pwChangerWorker != null && this.pwChangerWorker.IsRunning) {
+                return;
+            }
+
+            if (!this.isPasswordReady()) {
+                return;
+            }
+
+            try {
+                this.toggleControls(false);
+                this.pwChangerService.UpdateEntryPassword(this.hostPwEntry, this.maskedTextBoxNewPassword.Text);
+                this.pwChangerService.SaveDatabase();
+                this.Changed = true;
+                MessageBox.Show("Password successfully saved to the selected KeePass entry.", String.Empty, MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex) {
+                MessageBox.Show(String.Format("Error saving password to entry. Exception: {0}", ex), String.Empty, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally {
+                this.toggleControls(true);
+                this.checkControls();
+            }
+        }
+
         public void batchPasswordChangerWorkerChanged(object sender, BatchPasswordChangerEventArgs e) {
             Debug.WriteLine("batchPasswordChangerWorkerChanged");
             this.Invoke((MethodInvoker)delegate {
-                MessageBox.Show(String.Format("Password successfully changed for user '{0}' on host '{1}'.", e.HostPwEntry.GetUsername(), e.HostPwEntry.IPAddress), String.Empty, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                using (var form = new FormPasswordChangeSuccess(
+                    String.Format(
+                        "Password successfully changed for user '{0}' on host '{1}'. The password has been updated on the server and saved to the KeePass entry.",
+                        e.HostPwEntry.GetUsername(),
+                        e.HostPwEntry.IPAddress
+                    ),
+                    e.OperationDetails
+                )) {
+                    form.ShowDialog(this);
+                }
                 this.Changed = true;
             });
         }
@@ -104,13 +164,9 @@ namespace QuickConnectPlugin {
             if (this.pwChangerWorker != null && this.pwChangerWorker.IsRunning) {
                 return;
             }
-            if (this.maskedTextBoxNewPassword.UseSystemPasswordChar && this.passwordsMatch() ||
-                !this.maskedTextBoxNewPassword.UseSystemPasswordChar && FormsUtils.HasText(this.maskedTextBoxNewPassword)) {
-                this.buttonChangePassword.Enabled = true;
-            }
-            else {
-                this.buttonChangePassword.Enabled = false;
-            }
+            var isReady = this.isPasswordReady();
+            this.buttonChangePassword.Enabled = isReady;
+            this.buttonSaveToEntry.Enabled = isReady;
             this.maskedTextBoxRepeatNewPassword.Enabled = this.maskedTextBoxNewPassword.UseSystemPasswordChar;
         }
 
@@ -118,13 +174,32 @@ namespace QuickConnectPlugin {
             this.maskedTextBoxNewPassword.Enabled = state;
             this.maskedTextBoxRepeatNewPassword.Enabled = state;
             this.buttonChangePassword.Enabled = state;
+            this.buttonSaveToEntry.Enabled = state;
             this.buttonShowHidePassword.Enabled = state;
+            this.buttonGeneratePassword.Enabled = state;
+            this.comboBoxPasswordComplexity.Enabled = state;
+            this.numericUpDownPasswordLength.Enabled = state;
+        }
+
+        private bool isPasswordReady() {
+            return this.maskedTextBoxNewPassword.UseSystemPasswordChar && this.passwordsMatch() ||
+                !this.maskedTextBoxNewPassword.UseSystemPasswordChar && FormsUtils.HasText(this.maskedTextBoxNewPassword);
         }
 
         private bool passwordsMatch() {
             Debug.WriteLine("passwordsMatch");
             return FormsUtils.HasText(this.maskedTextBoxNewPassword) &&
                 this.maskedTextBoxNewPassword.Text.Equals(this.maskedTextBoxRepeatNewPassword.Text);
+        }
+
+        private PasswordComplexity getSelectedComplexity() {
+            if (this.comboBoxPasswordComplexity.SelectedIndex == 0) {
+                return PasswordComplexity.Low;
+            }
+            if (this.comboBoxPasswordComplexity.SelectedIndex == 2) {
+                return PasswordComplexity.High;
+            }
+            return PasswordComplexity.Medium;
         }
 
         private void checkPasswords(object sender, EventArgs e) {

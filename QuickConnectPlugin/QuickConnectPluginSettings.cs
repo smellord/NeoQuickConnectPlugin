@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 using KeePass.Plugins;
+using KeePassLib;
 using QuickConnectPlugin.ShortcutKeys;
 using QuickConnectPlugin.KeePass;
 
@@ -11,6 +12,10 @@ namespace QuickConnectPlugin {
         public const Keys DefaultRemoteDesktopShortcutKey = Keys.Control | Keys.Shift | Keys.E;
         public const Keys DefaultPuttyShortcutKey = Keys.Control | Keys.Shift | Keys.Q;
         public const Keys DefaultWinScpShortcutKey = Keys.Control | Keys.Shift | Keys.W;
+        public const string DefaultHostAddressMapFieldName = PwDefs.TitleField;
+        public const string DefaultConnectionMethodMapFieldName = PwDefs.NotesField;
+        public const string DefaultSshConnectionType = SshConnectionTypes.Putty;
+        public const string DefaultWindowsPasswordResetMethod = WindowsPasswordResetMethods.PsPasswd;
 
         private readonly ICustomConfigPropertyNameFormatter formatter;
         private readonly IPluginHost plugin;
@@ -33,12 +38,27 @@ namespace QuickConnectPlugin {
         {
             this.Enabled = this.plugin.CustomConfig.GetBool(this.formatter.Format("Enabled"), true);
             this.CompatibleMode = this.plugin.CustomConfig.GetBool(this.formatter.Format("CompatibleMode"), false);
-            this.AddChangePasswordMenuItem = this.plugin.CustomConfig.GetBool(this.formatter.Format("AddChangePasswordMenuItem"), false);
-            this.PuttyPath = this.plugin.CustomConfig.GetString(this.formatter.Format("SSHClientPath"), string.Empty);
-            this.WinScpPath = this.plugin.CustomConfig.GetString(this.formatter.Format("WinScpPath"), string.Empty);
-            this.PsPasswdPath = this.plugin.CustomConfig.GetString(this.formatter.Format("PsPasswdPath"), string.Empty);
-            this.HostAddressMapFieldName = this.plugin.CustomConfig.GetString(this.formatter.Format("HostAddressMapFieldName"), string.Empty);
-            this.ConnectionMethodMapFieldName = this.plugin.CustomConfig.GetString(this.formatter.Format("ConnectionMethodMapFieldName"), string.Empty);
+            this.AddChangePasswordMenuItem = this.plugin.CustomConfig.GetBool(this.formatter.Format("AddChangePasswordMenuItem"), true);
+            this.PuttyPath = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("SSHClientPath"),
+                QuickConnectUtils.NormalizeForStorage(QuickConnectUtils.GetPuttyPath() ?? QuickConnectUtils.DefaultPuttyPath));
+            this.WinScpPath = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("WinScpPath"),
+                QuickConnectUtils.NormalizeForStorage(QuickConnectUtils.GetWinScpPath() ?? QuickConnectUtils.DefaultWinScpPath));
+            this.PsPasswdPath = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("PsPasswdPath"),
+                QuickConnectUtils.NormalizeForStorage(QuickConnectUtils.GetPsPasswdPath() ?? string.Empty));
+            this.SshConnectionType = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("SshConnectionType"),
+                DefaultSshConnectionType);
+            this.ShowAllSshConnectionTypes = this.plugin.CustomConfig.GetBool(
+                this.formatter.Format("ShowAllSshConnectionTypes"),
+                false);
+            this.WindowsPasswordResetMethod = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("WindowsPasswordResetMethod"),
+                DefaultWindowsPasswordResetMethod);
+            this.HostAddressMapFieldName = this.plugin.CustomConfig.GetString(this.formatter.Format("HostAddressMapFieldName"), DefaultHostAddressMapFieldName);
+            this.ConnectionMethodMapFieldName = this.plugin.CustomConfig.GetString(this.formatter.Format("ConnectionMethodMapFieldName"), DefaultConnectionMethodMapFieldName);
             this.AdditionalOptionsMapFieldName = this.plugin.CustomConfig.GetString(this.formatter.Format("AdditionalOptionsMapFieldName"), string.Empty);
             this.DisableCLIPasswordForPutty = this.plugin.CustomConfig.GetBool(this.formatter.Format("DisableCLIPasswordForPutty"), false);
 
@@ -69,6 +89,9 @@ namespace QuickConnectPlugin {
             this.plugin.CustomConfig.SetString(this.formatter.Format("SSHClientPath"), this.PuttyPath);
             this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpPath"), this.WinScpPath);
             this.plugin.CustomConfig.SetString(this.formatter.Format("PsPasswdPath"), this.PsPasswdPath);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("SshConnectionType"), this.SshConnectionType);
+            this.plugin.CustomConfig.SetBool(this.formatter.Format("ShowAllSshConnectionTypes"), this.ShowAllSshConnectionTypes);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("WindowsPasswordResetMethod"), this.WindowsPasswordResetMethod);
             this.plugin.CustomConfig.SetString(this.formatter.Format("HostAddressMapFieldName"), this.HostAddressMapFieldName);
             this.plugin.CustomConfig.SetString(this.formatter.Format("ConnectionMethodMapFieldName"), this.ConnectionMethodMapFieldName);
             this.plugin.CustomConfig.SetString(this.formatter.Format("AdditionalOptionsMapFieldName"), this.AdditionalOptionsMapFieldName);
