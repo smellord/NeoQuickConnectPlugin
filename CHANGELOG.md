@@ -1,6 +1,6 @@
 # Changelog
 
-## NeoQuickConnectPlugin fork (2026-04-24)
+## 0.7.0 - NeoQuickConnectPlugin fork (2026-04-24)
 
 - Public fork branding changed to NeoQuickConnectPlugin.
 - Added Windows Terminal SSH launch options for native `ssh` and Windows Terminal plus `plink`.

@@ -72,9 +72,9 @@ See [FORK_NOTES.md](FORK_NOTES.md) for a fuller source-level comparison against 
 
 ## Installation
 
-Until this fork has published releases, build the project from source and copy the generated `QuickConnectPlugin.plgx` or plugin output into your KeePass plugins directory.
+Download `QuickConnectPlugin.plgx` from the latest NeoQuickConnectPlugin release and copy it into your KeePass plugins directory.
 
-When releases are published for this fork, use the release artifacts from this repository rather than the original upstream releases.
+The `.plgx` file keeps the original plugin output name for KeePass compatibility. Use the release artifacts from this fork rather than the original upstream releases.
 
 ## Usage
 

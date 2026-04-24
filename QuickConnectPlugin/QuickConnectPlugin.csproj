@@ -130,7 +130,6 @@
     <Compile Include="PasswordChanger\Services\PasswordChangerServiceFactory.cs" />
     <Compile Include="Extensions\PwDatabaseExtensions.cs" />
     <Compile Include="Info.cs" />
-    <Compile Include="Properties\GeneratedAssemblyInfo.cs" />
     <Compile Include="AbstractQuickConnectPluginSettings.cs" />
     <Compile Include="WinScpOptions.cs" />
     <Compile Include="WinScp\Protocol.cs" />
@@ -228,8 +227,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <SolutionDir Condition="'$(SolutionDir)' == '' Or '$(SolutionDir)' == '*Undefined*'">$(MSBuildProjectDirectory)\..\</SolutionDir>
+  </PropertyGroup>
   <Import Project="$(SolutionDir)\GitAssemblyVersion.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>xcopy /Y "$(SolutionDir)libs\Renci.SshNet.dll" "$(SolutionDir)QuickConnectPlugin\Resources\"</PreBuildEvent>
   </PropertyGroup>

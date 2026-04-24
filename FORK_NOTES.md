@@ -136,6 +136,8 @@ GitHub normally redirects old clone URLs, but using the new remote keeps the wor
 
 ## Suggested Release Description
 
+Release version: `0.7.0`
+
 NeoQuickConnectPlugin builds on QuickConnectPlugin `0.6.1` and adds Windows Terminal SSH support, automatic tool detection and installation helpers, Windows password reset over SSH, improved PsPasswd diagnostics, and a more capable batch password changer with per-host generated or manual passwords.
 
 It remains licensed under GPL-2.0-or-later and retains the original upstream copyright and license notices.
