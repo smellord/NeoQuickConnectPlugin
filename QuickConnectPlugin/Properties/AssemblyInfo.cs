@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("NeoQuickConnectPlugin")]
-[assembly: AssemblyDescription("Enhanced QuickConnect fork for Windows/Linux/ESXi hosts.")]
+[assembly: AssemblyDescription("Open RDP, SSH/Windows Terminal, and WinSCP sessions from KeePass. Use Tools > NeoQuickConnect for options and batch password changes, or right-click entries to connect.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Cristian Stoica; modified fork by Gianluca Melis")]
 [assembly: AssemblyProduct("KeePass Plugin")]

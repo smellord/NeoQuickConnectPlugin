@@ -14,6 +14,7 @@
 - Updated the main plugin project to .NET Framework 4.8.
 - Packaged releases are named `NeoQuickConnectPlugin.plgx` and use KeePass-compatible CLR 4.x prerequisite metadata.
 - Restored the required `KeePass Plugin` assembly product name so KeePass can detect the plugin.
+- Added a NeoQuickConnectPlugin assembly icon and a clearer KeePass plugin-list description.
 - Added screenshots and fork documentation.
 
 ## 0.6.1 (2025-03-26)

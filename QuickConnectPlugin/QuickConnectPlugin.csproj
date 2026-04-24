@@ -12,6 +12,7 @@
     <AssemblyName>QuickConnectPlugin</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <Deterministic>true</Deterministic>
+    <ApplicationIcon>Resources\NeoQuickConnectPlugin.ico</ApplicationIcon>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
@@ -218,6 +219,7 @@
     <Content Include="Resources\1454812854_mycomputer.png" />
     <Content Include="Resources\1454812927_remote.png" />
     <Content Include="Resources\1455997452_important.png" />
+    <Content Include="Resources\NeoQuickConnectPlugin.ico" />
     <None Include="Resources\1466555752_Transfer Document.png" />
     <None Include="Resources\1472349739_agt_action_success.png" />
     <Content Include="Resources\readme.txt" />
