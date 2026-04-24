@@ -3,11 +3,16 @@
 set PROJECT_PATH=%~dp0
 set KEEPASS_PATH="%PROJECT_PATH%libs\KeePass.exe"
 set SOURCE_PATH="%PROJECT_PATH%QuickConnectPlugin"
+set PLGX_NAME=NeoQuickConnectPlugin.plgx
 
 cd /d "%PROJECT_PATH%"
 
 IF NOT EXIST build (
 	mkdir build
+)
+
+IF EXIST .\build\QuickConnectPlugin.plgx (
+	del /Q .\build\QuickConnectPlugin.plgx
 )
 
 xcopy /Y .\QuickConnectPlugin\bin\Debug\QuickConnectPlugin.dll .\build\
@@ -30,7 +35,7 @@ xcopy /Y .\Info.cs .\QuickConnectPlugin\
 %KEEPASS_PATH% --plgx-prereq-kp:2.52 --plgx-prereq-net:4.8 --plgx-create %SOURCE_PATH%
 
 echo Moving PLGX file to build directory...
-move /Y .\QuickConnectPlugin.plgx .\build\QuickConnectPlugin.plgx
+move /Y .\QuickConnectPlugin.plgx .\build\%PLGX_NAME%
 
 echo Cleaning PLGX build directory....
 
