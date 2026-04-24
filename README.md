@@ -4,7 +4,7 @@ NeoQuickConnectPlugin is an unofficial modified fork of [cristianst85/QuickConne
 
 This fork is based on upstream QuickConnectPlugin `0.6.1` and keeps the original GPLv2-or-later license and copyright notices.
 
-> Note: the public fork/repository and release package are branded as **NeoQuickConnectPlugin**. Some internal project, namespace, DLL, and KeePass configuration names remain `QuickConnectPlugin` for compatibility with the original plugin structure.
+> Note: the public fork/repository and release package are branded as **NeoQuickConnectPlugin**. Some internal project, namespace, DLL, and KeePass configuration names remain `QuickConnectPlugin` because KeePass plugin discovery depends on the internal assembly/namespace/class conventions.
 
 ## Major Changes From Upstream
 
@@ -75,6 +75,8 @@ See [FORK_NOTES.md](FORK_NOTES.md) for a fuller source-level comparison against 
 Download `NeoQuickConnectPlugin.plgx` from the latest NeoQuickConnectPlugin release and copy it into your KeePass plugins directory.
 
 The packaged PLGX and release artifact are named for this fork. The compiled assembly still keeps the compatible internal QuickConnectPlugin name where KeePass/plugin settings expect it. Use the release artifacts from this fork rather than the original upstream releases.
+
+If KeePass previously tried to load a broken build, open **Tools** > **Plugins**, mark the PLGX plugin cache for clearing, close KeePass, and start it again after replacing the file.
 
 ## Usage
 
