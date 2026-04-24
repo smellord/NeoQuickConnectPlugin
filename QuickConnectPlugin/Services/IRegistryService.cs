@@ -6,5 +6,6 @@ namespace QuickConnectPlugin.Services {
     public interface IRegistryService {
 
         ICollection<String> GetPuttySessions();
+        ICollection<String> GetPuttyHostKeys();
     }
 }

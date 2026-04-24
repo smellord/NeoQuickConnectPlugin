@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>QuickConnectPlugin</RootNamespace>
     <AssemblyName>QuickConnectPlugin</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <Deterministic>true</Deterministic>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -26,6 +26,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <LangVersion>3</LangVersion>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,6 +36,7 @@
     </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="KeePass, Culture=neutral, PublicKeyToken=fed2ed7716aecf5c, processorArchitecture=MSIL">
@@ -53,6 +55,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArgumentsFormatters\CmdKeyRegisterArgumentsFormatter.cs" />
+    <Compile Include="ArgumentsFormatters\WindowsTerminalSshArgumentsFormatter.cs" />
+    <Compile Include="ArgumentsFormatters\WindowsTerminalArgumentsFormatter.cs" />
     <Compile Include="ArgumentsFormatters\WinScpArgumentsFormatter.cs" />
     <Compile Include="Commons\DisposableList.cs" />
     <Compile Include="Commons\EnumUtils.cs" />
@@ -74,6 +78,12 @@
     <Compile Include="FormPasswordChanger.Designer.cs">
       <DependentUpon>FormPasswordChanger.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormPasswordChangeSuccess.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormPasswordChangeSuccess.Designer.cs">
+      <DependentUpon>FormPasswordChangeSuccess.cs</DependentUpon>
+    </Compile>
     <Compile Include="IFieldMapper.cs" />
     <Compile Include="IHasTitle.cs" />
     <Compile Include="IHostPwEntry.cs" />
@@ -88,9 +98,13 @@
     <Compile Include="ShortcutKeys\KeysHelper.cs" />
     <Compile Include="PasswordChanger\ILinuxPasswordChanger.cs" />
     <Compile Include="PasswordChanger\ILinuxPasswordChangerFactory.cs" />
+    <Compile Include="PasswordChanger\PasswordComplexity.cs" />
+    <Compile Include="PasswordChanger\PasswordGenerator.cs" />
     <Compile Include="PasswordChanger\LinuxPasswordChangerExFactory.cs" />
     <Compile Include="PasswordChanger\PasswordChangerExFactory.cs" />
     <Compile Include="PasswordChanger\LinuxPasswordChangerEx.cs" />
+    <Compile Include="PasswordChanger\WindowsSshPasswordChangerEx.cs" />
+    <Compile Include="PasswordChanger\WindowsSshPasswordChangerExFactory.cs" />
     <Compile Include="PasswordChanger\PasswordChangerEx.cs" />
     <Compile Include="PasswordChanger\IPasswordChangerExGenericFactory.cs" />
     <Compile Include="PasswordChanger\DictionaryPasswordChangerExFactory.cs" />
@@ -125,6 +139,7 @@
     <Compile Include="Workers\Worker.cs" />
     <Compile Include="PasswordChanger\BatchPasswordChangerEventArgs.cs" />
     <Compile Include="PasswordChanger\BatchPasswordChangerErrorEventArgs.cs" />
+    <Compile Include="PasswordChanger\BatchPasswordChangeRequest.cs" />
     <Compile Include="PasswordChanger\HostTypeMapper.cs" />
     <Compile Include="PasswordChanger\IPasswordDatabase.cs" />
     <Compile Include="PasswordChanger\PasswordChangerFactory.cs" />
@@ -138,9 +153,11 @@
     <Compile Include="Workers\IWorker.cs" />
     <Compile Include="PasswordChanger\Services\IPasswordChangerService.cs" />
     <Compile Include="PasswordChanger\IPasswordChanger.cs" />
+    <Compile Include="PasswordChanger\IPasswordChangerResultInfo.cs" />
     <Compile Include="PasswordChanger\IPasswordChangerFactory.cs" />
     <Compile Include="PasswordChanger\PsPasswdWrapper.cs" />
     <Compile Include="PasswordChanger\WindowsPasswordChanger.cs" />
+    <Compile Include="PasswordChanger\WindowsSshPasswordChanger.cs" />
     <Compile Include="PuttyOptions.cs" />
     <Compile Include="PasswordChanger\PasswordChangerTreeNode.cs" />
     <Compile Include="RegistryPuttySessionFinder.cs" />
@@ -167,6 +184,8 @@
     <Compile Include="IQuickConnectPluginSettings.cs" />
     <Compile Include="QuickConnectPluginSettings.cs" />
     <Compile Include="QuickConnectUtils.cs" />
+    <Compile Include="SshConnectionTypes.cs" />
+    <Compile Include="WindowsPasswordResetMethods.cs" />
     <Compile Include="ConnectionMethodType.cs" />
     <Compile Include="ConnectionMethodTypeUtils.cs" />
     <Compile Include="QuickConnectPluginExt.cs" />

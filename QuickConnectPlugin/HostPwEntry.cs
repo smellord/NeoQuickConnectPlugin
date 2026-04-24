@@ -8,6 +8,8 @@ namespace QuickConnectPlugin {
 
     public class HostPwEntry : IHostPwEntry {
 
+        private const int PasswordExpiryDays = 90;
+
         private String ipAddress;
         public String IPAddress {
             get {
@@ -96,7 +98,18 @@ namespace QuickConnectPlugin {
         }
 
         public void UpdatePassword(string newPassword) {
-            this.pwDatabase.RootGroup.FindEntry(this.pwEntry.Uuid, true).Strings.Set(PwDefs.PasswordField, new ProtectedString(true, newPassword));
+            var targetEntry = this.pwDatabase.RootGroup.FindEntry(this.pwEntry.Uuid, true);
+            if (targetEntry == null) {
+                return;
+            }
+
+            targetEntry.Strings.Set(PwDefs.PasswordField, new ProtectedString(true, newPassword));
+            targetEntry.Expires = true;
+            targetEntry.ExpiryTime = DateTime.Now.Date.AddDays(PasswordExpiryDays);
+
+            this.pwEntry.Strings.Set(PwDefs.PasswordField, new ProtectedString(true, newPassword));
+            this.pwEntry.Expires = true;
+            this.pwEntry.ExpiryTime = targetEntry.ExpiryTime;
         }
     }
 }

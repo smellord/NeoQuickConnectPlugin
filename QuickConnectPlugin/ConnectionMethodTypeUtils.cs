@@ -21,6 +21,7 @@ namespace QuickConnectPlugin {
                 connectionMethods.Add(ConnectionMethodType.vSphereClient);
             }
             if (useSSH(description)) {
+                connectionMethods.Add(ConnectionMethodType.WindowsTerminalSSH);
                 connectionMethods.Add(ConnectionMethodType.PuttySSH);
                 connectionMethods.Add(ConnectionMethodType.WinSCP);
             };

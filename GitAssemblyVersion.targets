@@ -3,6 +3,8 @@
     <MSBuildCommunityTasksPath Condition=" '$(MSBuildCommunityTasksPath)' == '' ">$(SolutionDir)\.build</MSBuildCommunityTasksPath>
     <AssemblyInfoFile Condition=" '$(AssemblyInfoFile)' == '' ">$(MsBuildProjectDirectory)\Properties\AssemblyInfo.cs</AssemblyInfoFile>
     <GeneratedAssemblyInfoFile Condition=" '$(GeneratedAssemblyInfoFile)' == '' ">$(MsBuildProjectDirectory)\Properties\GeneratedAssemblyInfo.cs</GeneratedAssemblyInfoFile>
+    <HasGitMetadata Condition="Exists('$(SolutionDir)\.git') Or Exists('$(MSBuildProjectDirectory)\.git')">true</HasGitMetadata>
+    <HasGitMetadata Condition="'$(HasGitMetadata)' == ''">false</HasGitMetadata>
     <BuildDependsOn>
       ReadAssemblyVersion;
       SetAssemblyVersion;
@@ -26,7 +28,7 @@
       <AssemblyVersion>$([System.Text.RegularExpressions.Regex]::Match($(In), $(Pattern)).Groups.get_Item(1))</AssemblyVersion>
     </PropertyGroup>
   </Target>
-  <Target Name="SetAssemblyVersion">
+  <Target Name="SetAssemblyVersion" Condition="'$(HasGitMetadata)' == 'true'">
     <GitVersion LocalPath="$(SolutionDir)">
       <Output TaskParameter="CommitHash" PropertyName="CommitHash" />
     </GitVersion>
@@ -46,6 +48,9 @@
       <BranchInfo> ($(Branch))</BranchInfo>
     </PropertyGroup>
     <AssemblyInfo CodeLanguage="CS" OutputFile="$(GeneratedAssemblyInfoFile)" AssemblyInformationalVersion="$(AssemblyVersion)+$(CommitHash)$(Dirty)" />
+  </Target>
+  <Target Name="SetAssemblyVersion" Condition="'$(HasGitMetadata)' != 'true'">
+    <AssemblyInfo CodeLanguage="CS" OutputFile="$(GeneratedAssemblyInfoFile)" AssemblyInformationalVersion="$(AssemblyVersion)" />
   </Target>
   <Target Name="SetAssemblyVersionClean" Condition="Exists($(GeneratedAssemblyInfoFile))">
     <Delete Files="$(GeneratedAssemblyInfoFile)" />

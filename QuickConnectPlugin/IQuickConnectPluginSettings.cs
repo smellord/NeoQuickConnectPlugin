@@ -33,6 +33,18 @@ namespace QuickConnectPlugin {
         /// </summary>
         String PsPasswdPath { get; set; }
         /// <summary>
+        /// Gets or sets the preferred SSH client type shown in the entry menu.
+        /// </summary>
+        String SshConnectionType { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether all SSH client options should be shown.
+        /// </summary>
+        bool ShowAllSshConnectionTypes { get; set; }
+        /// <summary>
+        /// Gets or sets the preferred Windows password reset method.
+        /// </summary>
+        String WindowsPasswordResetMethod { get; set; }
+        /// <summary>
         /// Gets or sets a value indicating the field name from the KeePass 
         /// database that is used to get the remote host address (IP address 
         /// or hostname).
