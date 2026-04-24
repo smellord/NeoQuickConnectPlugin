@@ -3,6 +3,7 @@
 set PROJECT_PATH=%~dp0
 set KEEPASS_PATH="%PROJECT_PATH%libs\KeePass.exe"
 set SOURCE_PATH="%PROJECT_PATH%QuickConnectPlugin"
+set PLGX_SOURCE_PATH=%PROJECT_PATH%build\plgx-src\NeoQuickConnectPlugin
 set PLGX_NAME=NeoQuickConnectPlugin.plgx
 
 cd /d "%PROJECT_PATH%"
@@ -13,6 +14,14 @@ IF NOT EXIST build (
 
 IF EXIST .\build\QuickConnectPlugin.plgx (
 	del /Q .\build\QuickConnectPlugin.plgx
+)
+
+IF EXIST .\build\%PLGX_NAME% (
+	del /Q .\build\%PLGX_NAME%
+)
+
+IF EXIST .\build\plgx-src\ (
+	rmdir /S /Q .\build\plgx-src\
 )
 
 xcopy /Y .\QuickConnectPlugin\bin\Debug\QuickConnectPlugin.dll .\build\
@@ -29,17 +38,21 @@ IF EXIST .\QuickConnectPlugin\obj\ (
 
 echo Building PLGX file...
 
-copy /Y .\QuickConnectPlugin\Info.cs .\QuickConnectPlugin\Info.cs.bak
-xcopy /Y .\Info.cs .\QuickConnectPlugin\
+xcopy /E /I /Y %SOURCE_PATH% "%PLGX_SOURCE_PATH%\"
+copy /Y .\Info.cs "%PLGX_SOURCE_PATH%\Info.cs"
 
-%KEEPASS_PATH% --plgx-prereq-kp:2.52 --plgx-prereq-net:4.8 --plgx-create %SOURCE_PATH%
+REM KeePass PLGX prerequisites use CLR 4.x notation. Newer .NET Framework 4.x
+REM releases, including 4.8, are in-place updates and should not be written here.
+%KEEPASS_PATH% --plgx-prereq-kp:2.52 --plgx-prereq-net:4.0 --plgx-create "%PLGX_SOURCE_PATH%"
 
 echo Moving PLGX file to build directory...
-move /Y .\QuickConnectPlugin.plgx .\build\%PLGX_NAME%
+move /Y .\build\plgx-src\%PLGX_NAME% .\build\%PLGX_NAME%
 
 echo Cleaning PLGX build directory....
 
-move /Y .\QuickConnectPlugin\Info.cs.bak .\QuickConnectPlugin\Info.cs
+IF EXIST .\build\plgx-src\ (
+	rmdir /S /Q .\build\plgx-src\
+)
 
 echo Done.
 pause

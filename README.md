@@ -61,7 +61,7 @@ See [FORK_NOTES.md](FORK_NOTES.md) for a fuller source-level comparison against 
 
 ## Requirements
 
-- Microsoft Windows with .NET Framework 4.8.
+- Microsoft Windows with .NET Framework 4.x. .NET Framework 4.8 is recommended and is the Visual Studio project target.
 - KeePass 2.52 or newer.
 - Optional tools depending on features used:
   - PuTTY/plink for classic SSH or Windows Terminal plink mode.
@@ -74,7 +74,7 @@ See [FORK_NOTES.md](FORK_NOTES.md) for a fuller source-level comparison against 
 
 Download `NeoQuickConnectPlugin.plgx` from the latest NeoQuickConnectPlugin release and copy it into your KeePass plugins directory.
 
-The packaged plugin still contains the compatible internal QuickConnectPlugin assembly name, but the release artifact is named for this fork. Use the release artifacts from this fork rather than the original upstream releases.
+The packaged PLGX and release artifact are named for this fork. The compiled assembly still keeps the compatible internal QuickConnectPlugin name where KeePass/plugin settings expect it. Use the release artifacts from this fork rather than the original upstream releases.
 
 ## Usage
 

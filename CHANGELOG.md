@@ -12,6 +12,7 @@
 - Reworked batch password changing with automatic generated passwords, manual per-host passwords, richer logs, and per-entry request tracking.
 - Added cryptographic password generation and tests.
 - Updated the main plugin project to .NET Framework 4.8.
+- Packaged releases are named `NeoQuickConnectPlugin.plgx` and use KeePass-compatible CLR 4.x prerequisite metadata.
 - Added screenshots and fork documentation.
 
 ## 0.6.1 (2025-03-26)
