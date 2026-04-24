@@ -1,4 +1,4 @@
-﻿using QuickConnectPlugin.Commons;
+using QuickConnectPlugin.Commons;
 using System;
 using System.Windows.Forms;
 
@@ -37,7 +37,7 @@ namespace QuickConnectPlugin {
         }
 
         private void linkLabelSource_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
-            System.Diagnostics.Process.Start("https://github.com/cristianst85/QuickConnectPlugin");
+            System.Diagnostics.Process.Start("https://github.com/smellord/NeoQuickConnectPlugin");
         }
     }
 }

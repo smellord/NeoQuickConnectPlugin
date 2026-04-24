@@ -1,15 +1,15 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("QuickConnectPlugin")]
-[assembly: AssemblyDescription("Quick connect to Windows/Linux/ESXi hosts.")]
+[assembly: AssemblyTitle("NeoQuickConnectPlugin")]
+[assembly: AssemblyDescription("Enhanced QuickConnect fork for Windows/Linux/ESXi hosts.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Cristian Stoica")]
-[assembly: AssemblyProduct("KeePass Plugin")]
+[assembly: AssemblyCompany("Cristian Stoica; modified fork by Gianluca Melis")]
+[assembly: AssemblyProduct("NeoQuickConnectPlugin")]
 [assembly: AssemblyCopyright("Copyright © 2016-2025 Cristian Stoica")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

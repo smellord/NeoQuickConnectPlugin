@@ -1,4 +1,4 @@
-﻿namespace QuickConnectPlugin {
+namespace QuickConnectPlugin {
     partial class FormAbout {
         /// <summary>
         /// Required designer variable.
@@ -92,7 +92,7 @@
             this.labelPluginName.Name = "labelPluginName";
             this.labelPluginName.Size = new System.Drawing.Size(259, 15);
             this.labelPluginName.TabIndex = 10;
-            this.labelPluginName.Text = "QuickConnect";
+            this.labelPluginName.Text = "NeoQuickConnect";
             this.labelPluginName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // label5

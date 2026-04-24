@@ -1,4 +1,18 @@
-﻿# Changelog
+# Changelog
+
+## NeoQuickConnectPlugin fork (2026-04-24)
+
+- Public fork branding changed to NeoQuickConnectPlugin.
+- Added Windows Terminal SSH launch options for native `ssh` and Windows Terminal plus `plink`.
+- Added preferred SSH client selection and an option to show all SSH launchers.
+- Added automatic discovery for PuTTY, plink, WinSCP, Windows Terminal, and PsPasswd.
+- Added WinGet helper flow for PuTTY, WinSCP, PsTools/PsPasswd, and WinGet/App Installer repair.
+- Added Windows password reset over SSH using SSH.NET.
+- Improved PsPasswd diagnostics with RPC/SMB/service preflight checks.
+- Reworked batch password changing with automatic generated passwords, manual per-host passwords, richer logs, and per-entry request tracking.
+- Added cryptographic password generation and tests.
+- Updated the main plugin project to .NET Framework 4.8.
+- Added screenshots and fork documentation.
 
 ## 0.6.1 (2025-03-26)
 

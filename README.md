@@ -1,77 +1,119 @@
-# QuickConnect Plugin
+# NeoQuickConnectPlugin
 
-QuickConnect is a plugin for [KeePass](http://keepass.info) password manager that allows you to connect to Windows/Linux/ESXi hosts.
+NeoQuickConnectPlugin is an unofficial modified fork of [cristianst85/QuickConnectPlugin](https://github.com/cristianst85/QuickConnectPlugin) for [KeePass](https://keepass.info). It keeps the original QuickConnect idea - open remote hosts directly from KeePass entries - and extends it with Windows Terminal SSH workflows, stronger password-change tooling, and a more complete batch password changer.
 
-## Modified Fork Notice
+This fork is based on upstream QuickConnectPlugin `0.6.1` and keeps the original GPLv2-or-later license and copyright notices.
 
-This branch is an unofficial modified fork based on `cristianst85/QuickConnectPlugin` release `0.6.1`. It keeps the original GPL license and copyright notices, but adds Windows Terminal SSH launch options, expanded password-changing workflows, automatic tool detection/install helpers, and .NET Framework 4.8 project updates.
+> Note: the public fork/repository is branded as **NeoQuickConnectPlugin**. Some internal project, namespace, and output names remain `QuickConnectPlugin` for compatibility with the original KeePass plugin structure and build scripts.
 
-See [FORK_NOTES.md](FORK_NOTES.md) for the comparison summary, publishing checklist, and notes for users of this fork.
+## Major Changes From Upstream
 
-[![Latest Release](https://img.shields.io/github/release/cristianst85/quickconnectplugin.svg)](https://github.com/cristianst85/quickconnectplugin/releases/latest)
-[![Total Downloads](https://img.shields.io/github/downloads/cristianst85/quickconnectplugin/total.svg?maxAge=86400)](https://github.com/cristianst85/quickconnectplugin/releases/latest)
+- Windows Terminal SSH launch support:
+  - Open with native `ssh`.
+  - Open with Windows Terminal plus `plink`.
+  - Keep classic PuTTY as the default/fallback.
+- SSH menu customization:
+  - Choose the preferred SSH client in options.
+  - Show one preferred SSH action or all available SSH launchers.
+- Better tool detection:
+  - Auto-detect PuTTY, plink, WinSCP, Windows Terminal, and PsPasswd.
+  - Store common tool paths with environment variables where possible.
+- Built-in installer helpers:
+  - Install or auto-set PuTTY and WinSCP paths.
+  - Install/copy PsTools/PsPasswd with WinGet support.
+  - Includes `scripts/Ensure-WinGet.ps1` to help enable or repair WinGet/App Installer.
+- Expanded Windows password reset support:
+  - PsPasswd method with preflight checks for RPC/SMB reachability and required Windows services.
+  - SSH method using Windows OpenSSH Server and SSH.NET.
+- Reworked batch password changer:
+  - Automatic per-host generated passwords.
+  - Manual per-host passwords.
+  - Selection summary, richer status log, start/success/failure messages, and backend operation details.
+- Password generation:
+  - Cryptographic random password generator.
+  - Low, medium, and high complexity profiles.
+- Runtime/project update:
+  - Main plugin project targets .NET Framework 4.8.
+
+See [FORK_NOTES.md](FORK_NOTES.md) for a fuller source-level comparison against the original project.
+
+## Screenshots
+
+### Context Menu
+
+![NeoQuickConnectPlugin context menu with Windows Terminal SSH options](screenshots/context-menu.png)
+
+### General Options
+
+<img src="screenshots/general.png" alt="NeoQuickConnectPlugin general options" width="360">
+
+### Password Changer Options
+
+<img src="screenshots/psw-changer.png" alt="NeoQuickConnectPlugin password changer options" width="360">
+
+### Quick Password Change
+
+<img src="screenshots/quick-psw.change.png" alt="NeoQuickConnectPlugin quick password change" width="460">
+
+### Batch Password Changer
+
+![NeoQuickConnectPlugin batch password changer](screenshots/batch-psw-changer.png)
 
 ## Requirements
 
-- Microsoft Windows with .NET Framework 4.8;
-- [KeePass](http://keepass.info) version 2.52 or newer.
+- Microsoft Windows with .NET Framework 4.8.
+- KeePass 2.52 or newer.
+- Optional tools depending on features used:
+  - PuTTY/plink for classic SSH or Windows Terminal plink mode.
+  - WinSCP for file transfer actions.
+  - PsPasswd/PsTools for the PsPasswd Windows password reset method.
+  - Windows OpenSSH Server on target machines for the SSH Windows password reset method.
+  - vSphere PowerCLI for ESXi password-changing support.
 
 ## Installation
 
-- Download the [latest](https://github.com/cristianst85/QuickConnectPlugin/releases/latest) release;
-- Verify that the checksum for QuickConnectPlugin.plgx matches the one published with the release;
-- Copy the QuickConnectPlugin.plgx in the KeePass plugins directory and restart the application.
+Until this fork has published releases, build the project from source and copy the generated `QuickConnectPlugin.plgx` or plugin output into your KeePass plugins directory.
+
+When releases are published for this fork, use the release artifacts from this repository rather than the original upstream releases.
 
 ## Usage
 
-- The plugin adds a new menu item named **QuickConnect** under **Tools** menu;
-- Use the **Map Fields** tab in the **Options** dialog to configure the custom fields from which the plugin gets the host address (IP address or hostname) and the connection method;
-- Connection method is determined based on the text found in the mapped field. For example, if one of the following strings (case-insensitive) is found, then the corresponding items are added to the entry context menu (right-click):
-    * `rdp` or `windows` - *Open Remote Desktop* and *Open Remote Desktop (console)*;
-    * `esxi` or `vcenter` - *Open vSphere Client*;
-    * `ssh`, `telnet`, `linux` or a known Linux distribution name - *Open PuTTY*, *Open Windows Terminal (SSH)*, *Open Windows Terminal (plink)*, and *Open WinSCP*, depending on the SSH option selected in settings.
-- Additional options like session name or port can be specified to be used with PuTTY/WinSCP. The syntax is as follows:
-    `[{ssh|telnet}|<os_type>[;session:"<regex_pattern>"[;port:<port>[;ssh_key:"<ssh_key_path.ppk>"]]]]`.
-- Starting with the version [0.6.0-rc.1](https://github.com/cristianst85/QuickConnectPlugin/releases/tag/0.6.0-rc.1) the protocol for WinSCP can be also specified with the additional options. The syntax is as follows:
-	`protocol:{sftp|ftp|scp}` (e.g., `protocol:sftp`). If the protocol is omitted then it defaults to `scp`. A complete list of supported protocols by the WinSCP can be found [here](https://winscp.net/eng/docs/protocols).
-
-Connection method and Additional options can be mapped to the same field. This will avoid cluttering the database with too many custom fields.
-
-<p align="center"><img src="https://raw.github.com/cristianst85/QuickConnectPlugin/master/docs/screenshot.png" alt="QuickConnectPlugin" /></p>
+- The plugin adds a **NeoQuickConnect** menu under KeePass **Tools**.
+- Map KeePass fields in the options dialog so the plugin can read:
+  - host address,
+  - connection method,
+  - additional connection options.
+- Connection method text determines which actions are shown for an entry:
+  - `rdp` or `windows`: Remote Desktop actions.
+  - `esxi` or `vcenter`: vSphere Client action.
+  - `ssh`, `telnet`, `linux`, or known Linux distribution names: PuTTY, Windows Terminal SSH/plink, and WinSCP actions depending on settings.
+- Additional options can define session, port, key file, command, and WinSCP protocol values.
 
 ## Password Changer
 
-This feature allows you to change passwords for Windows/Linux/ESXi hosts directly from KeePass, including batch password updates with automatic or per-host passwords.
+NeoQuickConnectPlugin can change passwords for Windows, Linux, and ESXi hosts from KeePass. The modified fork adds per-host batch passwords, automatic generation, Windows password reset over SSH, and clearer result logging.
 
-### Requirements
+For Windows hosts, choose one of:
 
-- [PsPasswd](https://technet.microsoft.com/en-us/sysinternals/bb897543.aspx) utility for Windows hosts when using the PsPasswd method, or Windows OpenSSH Server when using the SSH method.
-- [vSphere PowerCLI version 5.8.0](https://my.vmware.com/web/vmware/details?downloadGroup=PCLI58R1&productId=420) for ESXi hosts.
+- `PsPasswd`: uses Sysinternals PsPasswd and checks RPC/SMB prerequisites before trying the change.
+- `SSH`: connects to Windows OpenSSH Server and runs the password change remotely.
 
 ## Security Considerations
 
-- Please take note that when launching *vSphere Client*, *PuTTY*, *Windows Terminal with plink*, *WinSCP* or [*PsPasswd*](https://technet.microsoft.com/en-us/sysinternals/bb897543.aspx) (via Password Changer) the plugin can expose the password via command-line arguments and it is visible during the lifetime of the child process.
+- PuTTY/plink, WinSCP, PsPasswd, and some legacy launch paths can expose passwords through command-line arguments while the child process is running.
 - Native Windows Terminal SSH launch does not pass the KeePass password on the command line.
+- Batch password changes update KeePass entries after successful remote changes. Keep backups of important databases before large batch operations.
 
-## Repository
+## Relationship To Upstream
 
-The original upstream repository is hosted on [GitHub](https://github.com/cristianst85/QuickConnectPlugin). This branch is a modified fork and is not an official upstream release.
+This is not an official QuickConnectPlugin release. It is a modified fork intended to keep the original project useful for newer Windows/KeePass workflows while clearly crediting the upstream author.
 
-## Changelog
-
-See [CHANGELOG](https://github.com/cristianst85/QuickConnectPlugin/blob/master/CHANGELOG.md) file for details.
-
-## Download
-
-Official upstream binaries are available from the original project releases. Binaries for this modified fork should be published from the fork repository together with the corresponding source code.
+Original upstream project: [cristianst85/QuickConnectPlugin](https://github.com/cristianst85/QuickConnectPlugin)
 
 ## License
 
-* The source code in this repository is released under the GNU GPLv2 or later license. See the [bundled LICENSE](https://github.com/cristianst85/QuickConnectPlugin/blob/master/LICENSE) file for details.
-* The menu items icons are from Crystal Clear icon set by [Everaldo Coelho](http://www.everaldo.com/) licensed under LGPL v2.1 or later.
-* Includes [SSH.NET](https://github.com/sshnet/SSH.NET) library copyrighted by RENCI and released under MIT License.
-* Includes code from [KeePass](https://keepass.info) licensed under GNU General Public License version 2 or later.
-
-## Related Projects
-
-* [AdvancedConnectPlugin](https://github.com/aalbng/AdvancedConnectPlugin)
+- The source code remains under GNU GPLv2 or later. See [LICENSE](LICENSE) and [COPYING](COPYING).
+- Original QuickConnectPlugin copyright and notices are preserved.
+- Menu item icons are from Crystal Clear icon set by Everaldo Coelho, licensed under LGPL v2.1 or later.
+- Includes SSH.NET, copyrighted by RENCI and released under the MIT License.
+- Includes code from KeePass, licensed under GNU GPLv2 or later.

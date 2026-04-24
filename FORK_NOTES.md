@@ -1,13 +1,15 @@
-# Modified Fork Notes
+# NeoQuickConnectPlugin Fork Notes
 
-This branch is prepared as a clean, source-first fork of `cristianst85/QuickConnectPlugin`.
+NeoQuickConnectPlugin is an unofficial source-first fork of `cristianst85/QuickConnectPlugin`.
 
-## Upstream Base
+## Identity
 
+- Public fork name: `NeoQuickConnectPlugin`
+- Intended repository: `https://github.com/smellord/NeoQuickConnectPlugin`
+- Current internal assembly/project names: mostly `QuickConnectPlugin`, kept for compatibility with the original plugin structure.
 - Upstream repository: https://github.com/cristianst85/QuickConnectPlugin
 - Upstream base tag: `0.6.1`
-- Upstream base commit used locally: `813389b4aa12fc9ab91a8ebfeb6c699052b10662`
-- Local branch name: `gianluca-enhancements-from-0.6.1`
+- Upstream base commit used for the original comparison: `813389b4aa12fc9ab91a8ebfeb6c699052b10662`
 - Comparison date: 2026-04-24
 
 ## Cleanup Applied Before Comparison
@@ -21,13 +23,13 @@ The local source snapshot was copied onto a fresh upstream clone, then obvious m
 - nested `bin/` and `obj/`
 - generated binaries such as `*.dll`, `*.pdb`, `*.exe`, `*.plgx`, and `*.nupkg`
 
-After removing line-ending-only noise, the meaningful delta is 43 modified tracked files plus new source/script files.
+After removing line-ending-only noise, the meaningful source delta is 43 modified tracked files plus new source/script files. The public `master` branch also keeps the latest upstream `master` fix that followed `0.6.1`.
 
-## Main Additions
+## Major Changes From Original QuickConnectPlugin
 
 ### Project/runtime
 
-- Moves the plugin project from .NET Framework 4.0 to .NET Framework 4.8.
+- Moves the main plugin project from .NET Framework 4.0 to .NET Framework 4.8.
 - Updates MSBuild project metadata and disables `Prefer32Bit` for Debug and Release.
 - Adds new source files to the main plugin and test project files.
 
@@ -104,6 +106,7 @@ After removing line-ending-only noise, the meaningful delta is 43 modified track
 - `QuickConnectPlugin/WindowsPasswordResetMethods.cs`
 - `QuickConnectPlugin.Tests/PasswordChanger/PasswordGeneratorTests.cs`
 - `scripts/Ensure-WinGet.ps1`
+- `screenshots/*.png`
 
 ## Publishing Checklist
 
@@ -114,39 +117,25 @@ This project is GPL-2.0-or-later upstream. This is not legal advice, but the pra
 - Mark the repository clearly as a modified fork, not the official upstream project.
 - Publish the complete corresponding source for any `.plgx`, `.dll`, or installer release you distribute.
 - Keep third-party license files under `libs/`.
-- Do not use upstream release badges or download links in a way that makes modified binaries look official.
-- Mention the upstream base tag and the modified branch/commit in every release note.
+- Avoid presenting fork binaries as official upstream releases.
+- Mention the upstream base tag and the modified fork branch/commit in every release note.
 
-## Suggested GitHub Workflow
+## Suggested GitHub Rename Step
 
-For your own public fork:
+The code and docs are prepared for `smellord/NeoQuickConnectPlugin`. Rename the repository in GitHub:
 
-```powershell
-git remote rename origin upstream
-git remote add origin https://github.com/<your-user>/QuickConnectPlugin.git
-git push -u origin gianluca-enhancements-from-0.6.1
-```
-
-For a contribution back to upstream:
+1. Open repository **Settings**.
+2. Rename `QuickConnectPlugin` to `NeoQuickConnectPlugin`.
+3. After GitHub renames it, update local remotes:
 
 ```powershell
-git fetch upstream
-git switch -c feature/windows-terminal-password-workflows upstream/master
-# cherry-pick or split the local feature changes into smaller reviewable commits
-git push -u origin feature/windows-terminal-password-workflows
+git remote set-url origin https://github.com/smellord/NeoQuickConnectPlugin.git
 ```
 
-Maintainers usually prefer smaller PRs. A good split would be:
-
-1. Project/runtime update to .NET Framework 4.8.
-2. Tool path discovery and WinGet helpers.
-3. Windows Terminal SSH launcher support.
-4. Windows password reset method selection and SSH reset implementation.
-5. Batch password changer UI and per-entry password requests.
-6. Password generator and tests.
+GitHub normally redirects old clone URLs, but using the new remote keeps the workspace honest.
 
 ## Suggested Release Description
 
-This fork builds on QuickConnectPlugin `0.6.1` and adds Windows Terminal SSH launch support, automatic tool detection and installation helpers, Windows password reset over SSH, improved PsPasswd diagnostics, and a more capable batch password changer with per-host generated or manual passwords.
+NeoQuickConnectPlugin builds on QuickConnectPlugin `0.6.1` and adds Windows Terminal SSH support, automatic tool detection and installation helpers, Windows password reset over SSH, improved PsPasswd diagnostics, and a more capable batch password changer with per-host generated or manual passwords.
 
 It remains licensed under GPL-2.0-or-later and retains the original upstream copyright and license notices.

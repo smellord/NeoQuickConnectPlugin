@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -23,10 +23,10 @@ namespace QuickConnectPlugin {
 
     public class QuickConnectPluginExt : Plugin, IDisposable {
 
-        public const String Title = "QuickConnect";
+        public const String Title = "NeoQuickConnect";
 
         private const String PluginName = "QuickConnectPlugin";
-        private const String PluginUpdateUrl = "https://raw.githubusercontent.com/cristianst85/QuickConnectPlugin/master/VERSION";
+        private const String PluginUpdateUrl = "https://raw.githubusercontent.com/smellord/NeoQuickConnectPlugin/master/VERSION";
         private const String KeePassListViewControl = "m_lvEntries";
 
         private const String OpenRemoteDesktopMenuItemText = "Open Remote Desktop";
