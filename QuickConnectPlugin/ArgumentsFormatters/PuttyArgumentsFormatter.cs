@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,11 +9,21 @@ namespace QuickConnectPlugin.ArgumentsFormatters {
         public String ExecutablePath { get; private set; }
         public bool AppendPassword { get; private set; }
         public IPuttySessionFinder PuttySessionFinder { get; private set; }
+        public bool EnableStartupCommand { get; private set; }
+        public string StartupCommand { get; private set; }
 
         public PuttyArgumentsFormatter(String puttyPath, IPuttySessionFinder puttySessionFinder, bool appendPassword) {
             this.ExecutablePath = puttyPath;
             this.PuttySessionFinder = puttySessionFinder;
             this.AppendPassword = appendPassword;
+        }
+
+        public PuttyArgumentsFormatter(String puttyPath, IPuttySessionFinder puttySessionFinder, bool appendPassword, bool enableStartupCommand, string startupCommand) {
+            this.ExecutablePath = puttyPath;
+            this.PuttySessionFinder = puttySessionFinder;
+            this.AppendPassword = appendPassword;
+            this.EnableStartupCommand = enableStartupCommand;
+            this.StartupCommand = startupCommand;
         }
 
         public String Format(IHostPwEntry hostPwEntry) {
@@ -33,6 +43,13 @@ namespace QuickConnectPlugin.ArgumentsFormatters {
 
             PuttyOptions options = null;
             bool success = PuttyOptions.TryParse(hostPwEntry.AdditionalOptions, out options);
+            string startupCommand = null;
+            var hasStartupCommand = hostPwEntry.ConnectionMethods.Contains(ConnectionMethodType.PuttySSH) &&
+                SshStartupCommandFormatter.TryGetStartupCommand(
+                    success ? options : null,
+                    this.EnableStartupCommand,
+                    this.StartupCommand,
+                    out startupCommand);
 
             if (success && options.HasKeyFile()) {
                 sb.AppendFormat(" -i \"{0}\"", options.KeyFilePath);
@@ -61,6 +78,10 @@ namespace QuickConnectPlugin.ArgumentsFormatters {
             }
             else if (hostPwEntry.ConnectionMethods.Contains(ConnectionMethodType.PuttyTelnet)) {
                 sb.Append(" -telnet");
+            }
+
+            if (hasStartupCommand) {
+                sb.AppendFormat(" -m \"{0}\"", SshStartupCommandFormatter.CreatePuttyCommandFile(startupCommand));
             }
 
             sb.AppendFormat(" {0}@{1}", hostPwEntry.GetUsername(), ipAddress);

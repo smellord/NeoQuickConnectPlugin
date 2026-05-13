@@ -253,7 +253,12 @@ namespace QuickConnectPlugin {
                             try
                             {
                                 var sessionFinder = new RegistryPuttySessionFinder(new WindowsRegistryService());
-                                var argsFormatter = new PuttyArgumentsFormatter(puttyPath, sessionFinder, !Settings.DisableCLIPasswordForPutty);
+                                var argsFormatter = new PuttyArgumentsFormatter(
+                                    puttyPath,
+                                    sessionFinder,
+                                    !Settings.DisableCLIPasswordForPutty,
+                                    Settings.EnableSshStartupCommand,
+                                    Settings.SshStartupCommand);
                                 ProcessUtils.StartDetached(argsFormatter.Format(selectedEntry));
                             }
                             catch (Exception ex)
@@ -499,7 +504,10 @@ namespace QuickConnectPlugin {
             menuItem.Click += new EventHandler(
                 delegate(object obj, EventArgs ev) {
                     try {
-                        IArgumentsFormatter argsFormatter = new WindowsTerminalSshArgumentsFormatter(windowsTerminalPath);
+                        IArgumentsFormatter argsFormatter = new WindowsTerminalSshArgumentsFormatter(
+                            windowsTerminalPath,
+                            Settings.EnableSshStartupCommand,
+                            Settings.SshStartupCommand);
                         ProcessUtils.StartDetached(argsFormatter.Format(hostPwEntry));
                     }
                     catch (Exception ex) {
@@ -545,7 +553,12 @@ namespace QuickConnectPlugin {
                             : hostPwEntry.IPAddress;
                         var useBatchMode = QuickConnectUtils.IsPuttyHostKeyCached(hostName, sshPort, registryService);
 
-                        IArgumentsFormatter argsFormatter = new WindowsTerminalArgumentsFormatter(windowsTerminalPath, plinkPath, useBatchMode);
+                        IArgumentsFormatter argsFormatter = new WindowsTerminalArgumentsFormatter(
+                            windowsTerminalPath,
+                            plinkPath,
+                            useBatchMode,
+                            Settings.EnableSshStartupCommand,
+                            Settings.SshStartupCommand);
                         ProcessUtils.StartDetached(argsFormatter.Format(hostPwEntry));
                     }
                     catch (Exception ex) {
@@ -576,7 +589,12 @@ namespace QuickConnectPlugin {
                 delegate(object obj, EventArgs ev) {
                     try {
                         var sessionFinder = new RegistryPuttySessionFinder(new WindowsRegistryService());
-                        IArgumentsFormatter argsFormatter = new PuttyArgumentsFormatter(puttyPath, sessionFinder, !this.Settings.DisableCLIPasswordForPutty);
+                        IArgumentsFormatter argsFormatter = new PuttyArgumentsFormatter(
+                            puttyPath,
+                            sessionFinder,
+                            !this.Settings.DisableCLIPasswordForPutty,
+                            this.Settings.EnableSshStartupCommand,
+                            this.Settings.SshStartupCommand);
                         ProcessUtils.StartDetached(argsFormatter.Format(hostPwEntry));
                     }
                     catch (Exception ex) {

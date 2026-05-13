@@ -1,4 +1,4 @@
-﻿using System.Windows.Forms;
+using System.Windows.Forms;
 
 namespace QuickConnectPlugin {
 
@@ -12,6 +12,8 @@ namespace QuickConnectPlugin {
         public virtual string PsPasswdPath { get; set; }
         public virtual string SshConnectionType { get; set; }
         public virtual bool ShowAllSshConnectionTypes { get; set; }
+        public virtual bool EnableSshStartupCommand { get; set; }
+        public virtual string SshStartupCommand { get; set; }
         public virtual string WindowsPasswordResetMethod { get; set; }
         public virtual string HostAddressMapFieldName { get; set; }
         public virtual string ConnectionMethodMapFieldName { get; set; }

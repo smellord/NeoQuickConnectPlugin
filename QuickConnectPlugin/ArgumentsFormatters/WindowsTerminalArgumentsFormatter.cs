@@ -8,6 +8,8 @@ namespace QuickConnectPlugin.ArgumentsFormatters {
         public String ExecutablePath { get; private set; }
         public String PlinkPath { get; private set; }
         public bool UseBatchMode { get; private set; }
+        public bool EnableStartupCommand { get; private set; }
+        public string StartupCommand { get; private set; }
 
         public WindowsTerminalArgumentsFormatter(String executablePath, String plinkPath, bool useBatchMode) {
             this.ExecutablePath = executablePath;
@@ -15,13 +17,34 @@ namespace QuickConnectPlugin.ArgumentsFormatters {
             this.UseBatchMode = useBatchMode;
         }
 
+        public WindowsTerminalArgumentsFormatter(String executablePath, String plinkPath, bool useBatchMode, bool enableStartupCommand, string startupCommand) {
+            this.ExecutablePath = executablePath;
+            this.PlinkPath = plinkPath;
+            this.UseBatchMode = useBatchMode;
+            this.EnableStartupCommand = enableStartupCommand;
+            this.StartupCommand = startupCommand;
+        }
+
         public String Format(IHostPwEntry hostPwEntry) {
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("\"{0}\"", this.ExecutablePath);
-            sb.AppendFormat(" new-tab \"{0}\"", this.PlinkPath);
+            sb.AppendFormat(" new-tab -- \"{0}\"", this.PlinkPath);
 
-            if (this.UseBatchMode) {
+            PuttyOptions options = null;
+            bool success = PuttyOptions.TryParse(hostPwEntry.AdditionalOptions, out options);
+            string startupCommand = null;
+            var hasStartupCommand = SshStartupCommandFormatter.TryGetStartupCommand(
+                success ? options : null,
+                this.EnableStartupCommand,
+                this.StartupCommand,
+                out startupCommand);
+
+            if (this.UseBatchMode && !hasStartupCommand) {
                 sb.Append(" -batch");
+            }
+
+            if (hasStartupCommand) {
+                sb.Append(" -t");
             }
 
             sb.Append(" -ssh");
@@ -36,9 +59,6 @@ namespace QuickConnectPlugin.ArgumentsFormatters {
             else {
                 ipAddress = hostPwEntry.IPAddress;
             }
-
-            PuttyOptions options = null;
-            bool success = PuttyOptions.TryParse(hostPwEntry.AdditionalOptions, out options);
 
             if (!String.IsNullOrEmpty(port)) {
                 sb.AppendFormat(" -P {0}", port);
@@ -74,6 +94,9 @@ namespace QuickConnectPlugin.ArgumentsFormatters {
 
             if (success && options.HasCommand()) {
                 sb.AppendFormat(" {0}", options.Command);
+            }
+            else if (hasStartupCommand) {
+                sb.AppendFormat(" {0}", SshStartupCommandFormatter.QuoteRemoteCommand(startupCommand));
             }
 
             return sb.ToString();

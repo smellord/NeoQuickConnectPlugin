@@ -42,6 +42,11 @@ namespace QuickConnectPlugin
             this.checkBoxAddChangePasswordItem.Checked = settings.AddChangePasswordMenuItem;
             this.checkBoxDisableCLIPasswordForPutty.Checked = settings.DisableCLIPasswordForPutty;
             this.checkBoxShowAllSshOptions.Checked = settings.ShowAllSshConnectionTypes;
+            this.checkBoxEnableSshStartupCommand.Checked = settings.EnableSshStartupCommand;
+            this.textBoxSshStartupCommand.Text = String.IsNullOrEmpty(settings.SshStartupCommand)
+                ? QuickConnectPluginSettings.DefaultSshStartupCommand
+                : settings.SshStartupCommand;
+            this.textBoxSshStartupCommand.Enabled = this.checkBoxEnableSshStartupCommand.Checked;
 
             this.textBoxPuttyPath.Text = settings.PuttyPath;
             this.textBoxPuttyPath.Select(this.textBoxPuttyPath.Text.Length, 0);
@@ -178,6 +183,8 @@ namespace QuickConnectPlugin
             this.checkBoxAddChangePasswordItem.CheckedChanged += new EventHandler(SettingsChanged);
             this.checkBoxDisableCLIPasswordForPutty.CheckedChanged += new EventHandler(SettingsChanged);
             this.checkBoxShowAllSshOptions.CheckedChanged += new EventHandler(ShowAllSshOptionsChanged);
+            this.checkBoxEnableSshStartupCommand.CheckedChanged += new EventHandler(SshStartupCommandChanged);
+            this.textBoxSshStartupCommand.TextChanged += new EventHandler(SettingsChanged);
             this.textBoxPuttyPath.TextChanged += new EventHandler(SettingsChanged);
             this.textBoxWinScpPath.TextChanged += new EventHandler(SettingsChanged);
             this.textBoxPsPasswdPath.TextChanged += new EventHandler(SettingsChanged);
@@ -228,6 +235,8 @@ namespace QuickConnectPlugin
             this.settings.WinScpPath = this.textBoxWinScpPath.Text;
             this.settings.PsPasswdPath = this.textBoxPsPasswdPath.Text;
             this.settings.ShowAllSshConnectionTypes = this.checkBoxShowAllSshOptions.Checked;
+            this.settings.EnableSshStartupCommand = this.checkBoxEnableSshStartupCommand.Checked;
+            this.settings.SshStartupCommand = this.textBoxSshStartupCommand.Text;
             this.settings.SshConnectionType = this.comboBoxSshConnectionType.SelectedItem == null
                 ? QuickConnectPluginSettings.DefaultSshConnectionType
                 : this.comboBoxSshConnectionType.SelectedItem.ToString();
@@ -331,6 +340,12 @@ namespace QuickConnectPlugin
         private void ShowAllSshOptionsChanged(object sender, EventArgs e)
         {
             this.comboBoxSshConnectionType.Enabled = !this.checkBoxShowAllSshOptions.Checked;
+            this.SettingsChanged(sender, e);
+        }
+
+        private void SshStartupCommandChanged(object sender, EventArgs e)
+        {
+            this.textBoxSshStartupCommand.Enabled = this.checkBoxEnableSshStartupCommand.Checked;
             this.SettingsChanged(sender, e);
         }
 

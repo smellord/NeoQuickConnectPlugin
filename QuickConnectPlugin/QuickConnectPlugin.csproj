@@ -58,6 +58,7 @@
     <Compile Include="ArgumentsFormatters\CmdKeyRegisterArgumentsFormatter.cs" />
     <Compile Include="ArgumentsFormatters\WindowsTerminalSshArgumentsFormatter.cs" />
     <Compile Include="ArgumentsFormatters\WindowsTerminalArgumentsFormatter.cs" />
+    <Compile Include="ArgumentsFormatters\SshStartupCommandFormatter.cs" />
     <Compile Include="ArgumentsFormatters\WinScpArgumentsFormatter.cs" />
     <Compile Include="Commons\DisposableList.cs" />
     <Compile Include="Commons\EnumUtils.cs" />

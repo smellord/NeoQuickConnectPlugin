@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Text.RegularExpressions;
 using Moq;
 using NUnit.Framework;
 using QuickConnectPlugin.ArgumentsFormatters;
@@ -260,6 +262,59 @@ namespace QuickConnectPlugin.Tests.ArgumentsFormatters {
             PuttyArgumentsFormatter argumentsFormatter = new PuttyArgumentsFormatter("putty.exe", mock.Object, appendPassword: true);
 
             Assert.AreEqual("\"putty.exe\" -ssh root@127.0.0.1 -pw \"12345\\\"678\"", argumentsFormatter.Format(pwEntry));
+        }
+
+        [Test]
+        public void FormatWithStartupCommandUsesCommandFile() {
+            InMemoryHostPwEntry pwEntry = new InMemoryHostPwEntry() {
+                Username = "root",
+                Password = "12345678",
+                IPAddress = "127.0.0.1"
+            };
+            pwEntry.ConnectionMethods.Add(ConnectionMethodType.PuttySSH);
+
+            var mock = new Mock<IPuttySessionFinder>();
+            mock.Setup(m => m.Find(It.IsAny<String>())).Returns(new Collection<String>());
+
+            PuttyArgumentsFormatter argumentsFormatter = new PuttyArgumentsFormatter(
+                "putty.exe",
+                mock.Object,
+                true,
+                true,
+                QuickConnectPluginSettings.DefaultSshStartupCommand);
+            var result = argumentsFormatter.Format(pwEntry);
+
+            StringAssert.StartsWith("\"putty.exe\" -ssh -m \"", result);
+            StringAssert.EndsWith("\" root@127.0.0.1 -pw \"12345678\"", result);
+
+            var match = Regex.Match(result, "-m \"(?<path>[^\"]+)\"");
+            Assert.IsTrue(match.Success);
+            Assert.AreEqual(
+                QuickConnectPluginSettings.DefaultSshStartupCommand + Environment.NewLine,
+                File.ReadAllText(match.Groups["path"].Value));
+        }
+
+        [Test]
+        public void FormatWithEntryCommandDoesNotAppendStartupCommand() {
+            InMemoryHostPwEntry pwEntry = new InMemoryHostPwEntry() {
+                Username = "root",
+                Password = "12345678",
+                IPAddress = "127.0.0.1",
+                AdditionalOptions = "command:uptime"
+            };
+            pwEntry.ConnectionMethods.Add(ConnectionMethodType.PuttySSH);
+
+            var mock = new Mock<IPuttySessionFinder>();
+            mock.Setup(m => m.Find(It.IsAny<String>())).Returns(new Collection<String>());
+
+            PuttyArgumentsFormatter argumentsFormatter = new PuttyArgumentsFormatter(
+                "putty.exe",
+                mock.Object,
+                true,
+                true,
+                QuickConnectPluginSettings.DefaultSshStartupCommand);
+
+            Assert.AreEqual("\"putty.exe\" -ssh root@127.0.0.1 -pw \"12345678\" uptime", argumentsFormatter.Format(pwEntry));
         }
     }
 }

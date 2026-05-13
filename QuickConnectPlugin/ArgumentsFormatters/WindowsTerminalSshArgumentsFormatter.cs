@@ -6,15 +6,23 @@ namespace QuickConnectPlugin.ArgumentsFormatters {
     public class WindowsTerminalSshArgumentsFormatter : IArgumentsFormatter {
 
         public String ExecutablePath { get; private set; }
+        public bool EnableStartupCommand { get; private set; }
+        public string StartupCommand { get; private set; }
 
         public WindowsTerminalSshArgumentsFormatter(String executablePath) {
             this.ExecutablePath = executablePath;
         }
 
+        public WindowsTerminalSshArgumentsFormatter(String executablePath, bool enableStartupCommand, string startupCommand) {
+            this.ExecutablePath = executablePath;
+            this.EnableStartupCommand = enableStartupCommand;
+            this.StartupCommand = startupCommand;
+        }
+
         public String Format(IHostPwEntry hostPwEntry) {
             StringBuilder sb = new StringBuilder();
             sb.AppendFormat("\"{0}\"", this.ExecutablePath);
-            sb.Append(" new-tab ssh");
+            sb.Append(" new-tab -- ssh");
 
             string ipAddress = null;
             string port = null;
@@ -29,6 +37,16 @@ namespace QuickConnectPlugin.ArgumentsFormatters {
 
             PuttyOptions options = null;
             bool success = PuttyOptions.TryParse(hostPwEntry.AdditionalOptions, out options);
+            string startupCommand = null;
+            var hasStartupCommand = SshStartupCommandFormatter.TryGetStartupCommand(
+                success ? options : null,
+                this.EnableStartupCommand,
+                this.StartupCommand,
+                out startupCommand);
+
+            if (hasStartupCommand) {
+                sb.Append(" -t");
+            }
 
             if (!String.IsNullOrEmpty(port)) {
                 sb.AppendFormat(" -p {0}", port);
@@ -45,6 +63,9 @@ namespace QuickConnectPlugin.ArgumentsFormatters {
 
             if (success && options.HasCommand()) {
                 sb.AppendFormat(" {0}", options.Command);
+            }
+            else if (hasStartupCommand) {
+                sb.AppendFormat(" {0}", SshStartupCommandFormatter.QuoteRemoteCommand(startupCommand));
             }
 
             return sb.ToString();

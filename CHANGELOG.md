@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Added an optional global SSH startup command for PuTTY, Terminal (SSH), and Terminal (plink).
+- Added a General options checkbox and editable command field, defaulting to `sudo -v; exec bash -l`.
+- Entry-level Additional options `command:...` values take priority over the global startup command.
+- Terminal SSH/plink modes force a TTY when the global startup command is used.
+
 ## 0.7.0 - NeoQuickConnectPlugin fork (2026-04-24)
 
 - Public fork branding changed to NeoQuickConnectPlugin.

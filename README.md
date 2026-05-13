@@ -15,6 +15,10 @@ This fork is based on upstream QuickConnectPlugin `0.6.1` and keeps the original
 - SSH menu customization:
   - Choose the preferred SSH client in options.
   - Show one preferred SSH action or all available SSH launchers.
+- SSH startup command:
+  - Optional global command that runs after SSH login for PuTTY, Terminal (SSH), and Terminal (plink).
+  - Useful for priming sudo with `sudo -v; exec bash -l`.
+  - Entry-specific `command:` values in Additional options override the global startup command.
 - Better tool detection:
   - Auto-detect PuTTY, plink, WinSCP, Windows Terminal, and PsPasswd.
   - Store common tool paths with environment variables where possible.
@@ -90,6 +94,18 @@ If KeePass previously tried to load a broken build, open **Tools** > **Plugins**
   - `esxi` or `vcenter`: vSphere Client action.
   - `ssh`, `telnet`, `linux`, or known Linux distribution names: PuTTY, Windows Terminal SSH/plink, and WinSCP actions depending on settings.
 - Additional options can define session, port, key file, command, and WinSCP protocol values.
+
+## SSH Startup Command
+
+In **Tools** > **NeoQuickConnect** > **Options** > **General**, enable **Run SSH startup command** to automatically run a command after opening an SSH session. The default command is:
+
+```bash
+sudo -v; exec bash -l
+```
+
+This asks once for the sudo password and then leaves you in a normal login shell. It does not bypass sudo password policy; it only starts the command for you.
+
+The startup command applies to **Terminal (SSH)**, **Terminal (plink)**, and **PuTTY**. It does not affect WinSCP. If a KeePass entry has its own Additional options value such as `command:...`, that entry command takes priority over the global startup command.
 
 ## Password Changer
 

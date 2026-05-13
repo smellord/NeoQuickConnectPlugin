@@ -15,6 +15,8 @@ namespace QuickConnectPlugin {
         public const string DefaultHostAddressMapFieldName = PwDefs.TitleField;
         public const string DefaultConnectionMethodMapFieldName = PwDefs.NotesField;
         public const string DefaultSshConnectionType = SshConnectionTypes.Putty;
+        public const bool DefaultEnableSshStartupCommand = false;
+        public const string DefaultSshStartupCommand = "sudo -v; exec bash -l";
         public const string DefaultWindowsPasswordResetMethod = WindowsPasswordResetMethods.PsPasswd;
 
         private readonly ICustomConfigPropertyNameFormatter formatter;
@@ -54,6 +56,12 @@ namespace QuickConnectPlugin {
             this.ShowAllSshConnectionTypes = this.plugin.CustomConfig.GetBool(
                 this.formatter.Format("ShowAllSshConnectionTypes"),
                 false);
+            this.EnableSshStartupCommand = this.plugin.CustomConfig.GetBool(
+                this.formatter.Format("EnableSshStartupCommand"),
+                DefaultEnableSshStartupCommand);
+            this.SshStartupCommand = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("SshStartupCommand"),
+                DefaultSshStartupCommand);
             this.WindowsPasswordResetMethod = this.plugin.CustomConfig.GetString(
                 this.formatter.Format("WindowsPasswordResetMethod"),
                 DefaultWindowsPasswordResetMethod);
@@ -91,6 +99,8 @@ namespace QuickConnectPlugin {
             this.plugin.CustomConfig.SetString(this.formatter.Format("PsPasswdPath"), this.PsPasswdPath);
             this.plugin.CustomConfig.SetString(this.formatter.Format("SshConnectionType"), this.SshConnectionType);
             this.plugin.CustomConfig.SetBool(this.formatter.Format("ShowAllSshConnectionTypes"), this.ShowAllSshConnectionTypes);
+            this.plugin.CustomConfig.SetBool(this.formatter.Format("EnableSshStartupCommand"), this.EnableSshStartupCommand);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("SshStartupCommand"), this.SshStartupCommand);
             this.plugin.CustomConfig.SetString(this.formatter.Format("WindowsPasswordResetMethod"), this.WindowsPasswordResetMethod);
             this.plugin.CustomConfig.SetString(this.formatter.Format("HostAddressMapFieldName"), this.HostAddressMapFieldName);
             this.plugin.CustomConfig.SetString(this.formatter.Format("ConnectionMethodMapFieldName"), this.ConnectionMethodMapFieldName);

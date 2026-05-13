@@ -1,4 +1,4 @@
-﻿namespace QuickConnectPlugin {
+namespace QuickConnectPlugin {
     partial class FormOptions {
         /// <summary>
         /// Required designer variable.
@@ -40,6 +40,9 @@
             this.buttonAutoSetPuttyPath = new System.Windows.Forms.Button();
             this.textBoxPuttyPath = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.textBoxSshStartupCommand = new System.Windows.Forms.TextBox();
+            this.labelSshStartupCommand = new System.Windows.Forms.Label();
+            this.checkBoxEnableSshStartupCommand = new System.Windows.Forms.CheckBox();
             this.checkBoxShowAllSshOptions = new System.Windows.Forms.CheckBox();
             this.comboBoxSshConnectionType = new System.Windows.Forms.ComboBox();
             this.labelSshConnectionType = new System.Windows.Forms.Label();
@@ -102,9 +105,9 @@
             this.groupBox7.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxShortcutKeysWarning)).BeginInit();
             this.SuspendLayout();
-            // 
+            //
             // tabControl
-            // 
+            //
             this.tabControl.Controls.Add(this.tabPage1);
             this.tabControl.Controls.Add(this.tabPage2);
             this.tabControl.Controls.Add(this.tabPage3);
@@ -112,31 +115,31 @@
             this.tabControl.Location = new System.Drawing.Point(12, 12);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
-            this.tabControl.Size = new System.Drawing.Size(305, 400);
+            this.tabControl.Size = new System.Drawing.Size(305, 480);
             this.tabControl.TabIndex = 0;
-            // 
+            //
             // tabPage1
-            // 
+            //
             this.tabPage1.Controls.Add(this.groupBox3);
             this.tabPage1.Controls.Add(this.groupBox2);
             this.tabPage1.Controls.Add(this.groupBox1);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(297, 374);
+            this.tabPage1.Size = new System.Drawing.Size(297, 454);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "General";
             this.tabPage1.UseVisualStyleBackColor = true;
-            // 
+            //
             // groupBox3
-            // 
+            //
             this.groupBox3.Controls.Add(this.pictureBoxWinScpPathWarningIcon);
             this.groupBox3.Controls.Add(this.labelWinScpPathWarningMessage);
             this.groupBox3.Controls.Add(this.buttonConfigureWinScpPath);
             this.groupBox3.Controls.Add(this.buttonInstallWinScp);
             this.groupBox3.Controls.Add(this.buttonAutoSetWinScpPath);
             this.groupBox3.Controls.Add(this.textBoxWinScpPath);
-            this.groupBox3.Location = new System.Drawing.Point(3, 261);
+            this.groupBox3.Location = new System.Drawing.Point(3, 331);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(290, 110);
             this.groupBox3.TabIndex = 8;
@@ -210,7 +213,7 @@
             this.groupBox2.Controls.Add(this.buttonInstallPutty);
             this.groupBox2.Controls.Add(this.buttonAutoSetPuttyPath);
             this.groupBox2.Controls.Add(this.textBoxPuttyPath);
-            this.groupBox2.Location = new System.Drawing.Point(3, 147);
+            this.groupBox2.Location = new System.Drawing.Point(3, 217);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(290, 110);
             this.groupBox2.TabIndex = 4;
@@ -280,6 +283,9 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.textBoxSshStartupCommand);
+            this.groupBox1.Controls.Add(this.labelSshStartupCommand);
+            this.groupBox1.Controls.Add(this.checkBoxEnableSshStartupCommand);
             this.groupBox1.Controls.Add(this.checkBoxShowAllSshOptions);
             this.groupBox1.Controls.Add(this.comboBoxSshConnectionType);
             this.groupBox1.Controls.Add(this.labelSshConnectionType);
@@ -288,11 +294,37 @@
             this.groupBox1.Controls.Add(this.checkBoxEnable);
             this.groupBox1.Location = new System.Drawing.Point(3, 1);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(290, 140);
+            this.groupBox1.Size = new System.Drawing.Size(290, 210);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Settings";
-            // 
+            //
+            // textBoxSshStartupCommand
+            //
+            this.textBoxSshStartupCommand.Location = new System.Drawing.Point(91, 163);
+            this.textBoxSshStartupCommand.Name = "textBoxSshStartupCommand";
+            this.textBoxSshStartupCommand.Size = new System.Drawing.Size(186, 20);
+            this.textBoxSshStartupCommand.TabIndex = 8;
+            //
+            // labelSshStartupCommand
+            //
+            this.labelSshStartupCommand.AutoSize = true;
+            this.labelSshStartupCommand.Location = new System.Drawing.Point(38, 166);
+            this.labelSshStartupCommand.Name = "labelSshStartupCommand";
+            this.labelSshStartupCommand.Size = new System.Drawing.Size(54, 13);
+            this.labelSshStartupCommand.TabIndex = 7;
+            this.labelSshStartupCommand.Text = "Command";
+            //
+            // checkBoxEnableSshStartupCommand
+            //
+            this.checkBoxEnableSshStartupCommand.AutoSize = true;
+            this.checkBoxEnableSshStartupCommand.Location = new System.Drawing.Point(19, 139);
+            this.checkBoxEnableSshStartupCommand.Name = "checkBoxEnableSshStartupCommand";
+            this.checkBoxEnableSshStartupCommand.Size = new System.Drawing.Size(158, 17);
+            this.checkBoxEnableSshStartupCommand.TabIndex = 6;
+            this.checkBoxEnableSshStartupCommand.Text = "Run SSH startup command";
+            this.checkBoxEnableSshStartupCommand.UseVisualStyleBackColor = true;
+            //
             // checkBoxShowAllSshOptions
             // 
             this.checkBoxShowAllSshOptions.AutoSize = true;
@@ -359,7 +391,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(297, 374);
+            this.tabPage2.Size = new System.Drawing.Size(297, 454);
             this.tabPage2.TabIndex = 2;
             this.tabPage2.Text = "Password Changer";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -508,7 +540,7 @@
             this.tabPage3.Controls.Add(this.groupBox12);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(297, 374);
+            this.tabPage3.Size = new System.Drawing.Size(297, 454);
             this.tabPage3.TabIndex = 1;
             this.tabPage3.Text = "Map Fields";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -600,7 +632,7 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(297, 374);
+            this.tabPage4.Size = new System.Drawing.Size(297, 454);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Shortcut Keys";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -704,7 +736,7 @@
             // 
             // buttonApply
             // 
-            this.buttonApply.Location = new System.Drawing.Point(238, 409);
+            this.buttonApply.Location = new System.Drawing.Point(238, 489);
             this.buttonApply.Name = "buttonApply";
             this.buttonApply.Size = new System.Drawing.Size(75, 23);
             this.buttonApply.TabIndex = 1;
@@ -715,7 +747,7 @@
             // buttonCancel
             // 
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(157, 409);
+            this.buttonCancel.Location = new System.Drawing.Point(157, 489);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 2;
@@ -725,7 +757,7 @@
             // buttonOK
             // 
             this.buttonOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.buttonOK.Location = new System.Drawing.Point(76, 409);
+            this.buttonOK.Location = new System.Drawing.Point(76, 489);
             this.buttonOK.Name = "buttonOK";
             this.buttonOK.Size = new System.Drawing.Size(75, 23);
             this.buttonOK.TabIndex = 3;
@@ -739,7 +771,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
-            this.ClientSize = new System.Drawing.Size(329, 448);
+            this.ClientSize = new System.Drawing.Size(329, 528);
             this.Controls.Add(this.buttonOK);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonApply);
@@ -835,6 +867,9 @@
         private System.Windows.Forms.CheckBox checkBoxShowAllSshOptions;
         private System.Windows.Forms.ComboBox comboBoxSshConnectionType;
         private System.Windows.Forms.Label labelSshConnectionType;
+        private System.Windows.Forms.TextBox textBoxSshStartupCommand;
+        private System.Windows.Forms.Label labelSshStartupCommand;
+        private System.Windows.Forms.CheckBox checkBoxEnableSshStartupCommand;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.GroupBox groupBox7;
         private System.Windows.Forms.Label labelWinScpShortcutKey;

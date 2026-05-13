@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 
 namespace QuickConnectPlugin {
@@ -40,6 +40,14 @@ namespace QuickConnectPlugin {
         /// Gets or sets a value indicating whether all SSH client options should be shown.
         /// </summary>
         bool ShowAllSshConnectionTypes { get; set; }
+        /// <summary>
+        /// Gets or sets a value indicating whether a global SSH startup command should be run after login.
+        /// </summary>
+        bool EnableSshStartupCommand { get; set; }
+        /// <summary>
+        /// Gets or sets the global SSH startup command.
+        /// </summary>
+        String SshStartupCommand { get; set; }
         /// <summary>
         /// Gets or sets the preferred Windows password reset method.
         /// </summary>

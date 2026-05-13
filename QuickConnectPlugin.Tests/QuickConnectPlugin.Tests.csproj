@@ -53,6 +53,8 @@
   <ItemGroup>
     <Compile Include="ArgumentsFormatters\CmdKeyRegisterArgumentsFormatterTests.cs" />
     <Compile Include="ArgumentsFormatters\CmdKeyUnregisterArgumentsFormatterTests.cs" />
+    <Compile Include="ArgumentsFormatters\WindowsTerminalArgumentsFormatterTests.cs" />
+    <Compile Include="ArgumentsFormatters\WindowsTerminalSshArgumentsFormatterTests.cs" />
     <Compile Include="ArgumentsFormatters\WinScpArgumentsFormatterTests.cs" />
     <Compile Include="Commons\AssemblyUtilsTests.cs" />
     <Compile Include="ConnectionMethodTypeUtilsTests.cs" />
