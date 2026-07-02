@@ -21,6 +21,13 @@ namespace QuickConnectPlugin
         private const string PuttyDownloadUrl = "https://www.putty.org/";
         private const string WinScpDownloadUrl = "https://winscp.net/eng/download.php";
         private const string PsPasswdDownloadUrl = "https://learn.microsoft.com/en-us/sysinternals/downloads/pspasswd";
+        private const string SshStartupPresetNone = "None";
+        private const string SshStartupPresetPrimeSudo = "Prime sudo";
+        private const string SshStartupPresetRootShell = "Root shell";
+        private const string SshStartupPresetRootShellNoPrompt = "Root shell no prompt";
+        private const string SshStartupPresetCustom = "Custom";
+        private const string SshStartupCommandRootShell = "sudo -i";
+        private const string SshStartupCommandRootShellNoPrompt = "sudo -n -i";
 
         private readonly IQuickConnectPluginSettings settings;
         private readonly PwDatabase database;
@@ -42,6 +49,7 @@ namespace QuickConnectPlugin
         private string winScpPassphraseFieldName;
         private bool winScpUseSudoSftpServer;
         private string winScpSudoSftpServerCommand;
+        private bool updatingSshStartupCommandPreset;
 
         public FormOptions(string pluginName, IQuickConnectPluginSettings settings, ICollection<string> dbFields)
             : this(pluginName, settings, dbFields, null)
@@ -63,11 +71,7 @@ namespace QuickConnectPlugin
             this.checkBoxAddChangePasswordItem.Checked = settings.AddChangePasswordMenuItem;
             this.checkBoxDisableCLIPasswordForPutty.Checked = settings.DisableCLIPasswordForPutty;
             this.checkBoxShowAllSshOptions.Checked = settings.ShowAllSshConnectionTypes;
-            this.checkBoxEnableSshStartupCommand.Checked = settings.EnableSshStartupCommand;
-            this.textBoxSshStartupCommand.Text = String.IsNullOrEmpty(settings.SshStartupCommand)
-                ? QuickConnectPluginSettings.DefaultSshStartupCommand
-                : settings.SshStartupCommand;
-            this.textBoxSshStartupCommand.Enabled = this.checkBoxEnableSshStartupCommand.Checked;
+            this.InitializeSshStartupCommandPreset(settings.EnableSshStartupCommand, settings.SshStartupCommand);
 
             this.textBoxPuttyPath.Text = settings.PuttyPath;
             this.textBoxPuttyPath.Select(this.textBoxPuttyPath.Text.Length, 0);
@@ -225,7 +229,8 @@ namespace QuickConnectPlugin
             this.checkBoxDisableCLIPasswordForPutty.CheckedChanged += new EventHandler(SettingsChanged);
             this.checkBoxShowAllSshOptions.CheckedChanged += new EventHandler(ShowAllSshOptionsChanged);
             this.checkBoxEnableSshStartupCommand.CheckedChanged += new EventHandler(SshStartupCommandChanged);
-            this.textBoxSshStartupCommand.TextChanged += new EventHandler(SettingsChanged);
+            this.comboBoxSshStartupCommandPreset.SelectedIndexChanged += new EventHandler(SshStartupCommandPresetChanged);
+            this.textBoxSshStartupCommand.TextChanged += new EventHandler(SshStartupCommandTextChanged);
             this.textBoxPuttyPath.TextChanged += new EventHandler(SettingsChanged);
             this.textBoxWinScpPath.TextChanged += new EventHandler(SettingsChanged);
             this.checkBoxWinScpUseJumpHost.CheckedChanged += new EventHandler(SettingsChanged);
@@ -398,8 +403,176 @@ namespace QuickConnectPlugin
 
         private void SshStartupCommandChanged(object sender, EventArgs e)
         {
-            this.textBoxSshStartupCommand.Enabled = this.checkBoxEnableSshStartupCommand.Checked;
+            if (!this.updatingSshStartupCommandPreset)
+            {
+                this.updatingSshStartupCommandPreset = true;
+
+                try
+                {
+                    if (this.checkBoxEnableSshStartupCommand.Checked)
+                    {
+                        var currentPreset = this.comboBoxSshStartupCommandPreset.SelectedItem as string;
+                        if (String.IsNullOrEmpty(currentPreset) || String.Equals(currentPreset, SshStartupPresetNone, StringComparison.Ordinal))
+                        {
+                            this.SelectSshStartupCommandPreset(true, this.textBoxSshStartupCommand.Text);
+                        }
+                    }
+                    else
+                    {
+                        this.comboBoxSshStartupCommandPreset.SelectedItem = SshStartupPresetNone;
+                    }
+
+                    this.UpdateSshStartupCommandControls();
+                }
+                finally
+                {
+                    this.updatingSshStartupCommandPreset = false;
+                }
+            }
+            else
+            {
+                this.UpdateSshStartupCommandControls();
+            }
+
             this.SettingsChanged(sender, e);
+        }
+
+        private void InitializeSshStartupCommandPreset(bool enabled, string command)
+        {
+            this.updatingSshStartupCommandPreset = true;
+
+            try
+            {
+                this.comboBoxSshStartupCommandPreset.DropDownStyle = ComboBoxStyle.DropDownList;
+                this.comboBoxSshStartupCommandPreset.Items.Clear();
+                this.comboBoxSshStartupCommandPreset.Items.Add(SshStartupPresetNone);
+                this.comboBoxSshStartupCommandPreset.Items.Add(SshStartupPresetPrimeSudo);
+                this.comboBoxSshStartupCommandPreset.Items.Add(SshStartupPresetRootShell);
+                this.comboBoxSshStartupCommandPreset.Items.Add(SshStartupPresetRootShellNoPrompt);
+                this.comboBoxSshStartupCommandPreset.Items.Add(SshStartupPresetCustom);
+
+                this.checkBoxEnableSshStartupCommand.Checked = enabled;
+                this.textBoxSshStartupCommand.Text = String.IsNullOrEmpty(command)
+                    ? QuickConnectPluginSettings.DefaultSshStartupCommand
+                    : command;
+                this.SelectSshStartupCommandPreset(enabled, this.textBoxSshStartupCommand.Text);
+                this.UpdateSshStartupCommandControls();
+            }
+            finally
+            {
+                this.updatingSshStartupCommandPreset = false;
+            }
+        }
+
+        private void SshStartupCommandPresetChanged(object sender, EventArgs e)
+        {
+            if (!this.updatingSshStartupCommandPreset)
+            {
+                this.updatingSshStartupCommandPreset = true;
+
+                try
+                {
+                    this.ApplySshStartupCommandPreset(this.comboBoxSshStartupCommandPreset.SelectedItem as string);
+                }
+                finally
+                {
+                    this.updatingSshStartupCommandPreset = false;
+                }
+            }
+
+            this.UpdateSshStartupCommandControls();
+            this.SettingsChanged(sender, e);
+        }
+
+        private void SshStartupCommandTextChanged(object sender, EventArgs e)
+        {
+            if (!this.updatingSshStartupCommandPreset)
+            {
+                this.updatingSshStartupCommandPreset = true;
+
+                try
+                {
+                    this.SelectSshStartupCommandPreset(this.checkBoxEnableSshStartupCommand.Checked, this.textBoxSshStartupCommand.Text);
+                    this.UpdateSshStartupCommandControls();
+                }
+                finally
+                {
+                    this.updatingSshStartupCommandPreset = false;
+                }
+            }
+
+            this.SettingsChanged(sender, e);
+        }
+
+        private void ApplySshStartupCommandPreset(string preset)
+        {
+            if (String.Equals(preset, SshStartupPresetNone, StringComparison.Ordinal))
+            {
+                this.checkBoxEnableSshStartupCommand.Checked = false;
+            }
+            else
+            {
+                this.checkBoxEnableSshStartupCommand.Checked = true;
+
+                if (String.Equals(preset, SshStartupPresetPrimeSudo, StringComparison.Ordinal))
+                {
+                    this.textBoxSshStartupCommand.Text = QuickConnectPluginSettings.DefaultSshStartupCommand;
+                }
+                else if (String.Equals(preset, SshStartupPresetRootShell, StringComparison.Ordinal))
+                {
+                    this.textBoxSshStartupCommand.Text = SshStartupCommandRootShell;
+                }
+                else if (String.Equals(preset, SshStartupPresetRootShellNoPrompt, StringComparison.Ordinal))
+                {
+                    this.textBoxSshStartupCommand.Text = SshStartupCommandRootShellNoPrompt;
+                }
+                else if (String.Equals(preset, SshStartupPresetCustom, StringComparison.Ordinal) &&
+                    String.IsNullOrWhiteSpace(this.textBoxSshStartupCommand.Text))
+                {
+                    this.textBoxSshStartupCommand.Text = QuickConnectPluginSettings.DefaultSshStartupCommand;
+                }
+            }
+
+            this.UpdateSshStartupCommandControls();
+        }
+
+        private void SelectSshStartupCommandPreset(bool enabled, string command)
+        {
+            var preset = SshStartupPresetNone;
+
+            if (enabled)
+            {
+                if (String.Equals(command, QuickConnectPluginSettings.DefaultSshStartupCommand, StringComparison.Ordinal))
+                {
+                    preset = SshStartupPresetPrimeSudo;
+                }
+                else if (String.Equals(command, SshStartupCommandRootShell, StringComparison.Ordinal))
+                {
+                    preset = SshStartupPresetRootShell;
+                }
+                else if (String.Equals(command, SshStartupCommandRootShellNoPrompt, StringComparison.Ordinal))
+                {
+                    preset = SshStartupPresetRootShellNoPrompt;
+                }
+                else
+                {
+                    preset = SshStartupPresetCustom;
+                }
+            }
+
+            this.comboBoxSshStartupCommandPreset.SelectedItem = preset;
+        }
+
+        private void UpdateSshStartupCommandControls()
+        {
+            var enabled = this.checkBoxEnableSshStartupCommand.Checked;
+            var preset = this.comboBoxSshStartupCommandPreset.SelectedItem as string;
+            var custom = String.Equals(preset, SshStartupPresetCustom, StringComparison.Ordinal);
+
+            this.comboBoxSshStartupCommandPreset.Enabled = enabled;
+            this.labelSshStartupCommandPreset.Enabled = enabled;
+            this.textBoxSshStartupCommand.Enabled = enabled && custom;
+            this.labelSshStartupCommand.Enabled = enabled;
         }
 
         private bool ValidateSettings()

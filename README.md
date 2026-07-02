@@ -17,7 +17,7 @@ This fork is based on upstream QuickConnectPlugin `0.6.1` and keeps the original
   - Show one preferred SSH action or all available SSH launchers.
 - SSH startup command:
   - Optional global command that runs after SSH login for PuTTY, Terminal (SSH), and Terminal (plink).
-  - Useful for priming sudo with `sudo -v; exec bash -l`.
+  - Presets for priming sudo, opening an interactive root shell, passwordless root shell, and custom commands.
   - Entry-specific `command:` values in Additional options override the global startup command.
 - WinSCP jump-host beta:
   - Optional WinSCP tunnel settings for SFTP/SCP connections through a configured SSH jump host.
@@ -103,13 +103,16 @@ If KeePass previously tried to load a broken build, open **Tools** > **Plugins**
 
 ## SSH Startup Command
 
-In **Tools** > **NeoQuickConnect** > **Options** > **General**, enable **Run SSH startup command** to automatically run a command after opening an SSH session. The default command is:
+In **Tools** > **NeoQuickConnect** > **Options** > **General**, enable **Run SSH startup command** to automatically run a command after opening an SSH session. The default preset is `Prime sudo`.
 
-```bash
-sudo -v; exec bash -l
-```
+Available presets are:
 
-This asks once for the sudo password and then leaves you in a normal login shell. It does not bypass sudo password policy; it only starts the command for you.
+- `Prime sudo`: `sudo -v; exec bash -l`
+- `Root shell`: `sudo -i`
+- `Root shell no prompt`: `sudo -n -i`
+- `Custom`: any command you want to keep in the command field
+
+The `Prime sudo` preset asks once for the sudo password and then leaves you in a normal login shell. The root-shell presets do not bypass sudo policy. `Root shell no prompt` only works when the target host already allows passwordless sudo for that user; otherwise sudo exits instead of prompting.
 
 The startup command applies to **Terminal (SSH)**, **Terminal (plink)**, and **PuTTY**. It does not affect WinSCP. If a KeePass entry has its own Additional options value such as `command:...`, that entry command takes priority over the global startup command.
 

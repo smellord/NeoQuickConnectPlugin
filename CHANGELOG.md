@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0-beta.4 - SSH startup presets (2026-07-02)
+
+- Added a General options preset dropdown for SSH startup commands.
+- Added presets for sudo priming, interactive root shell, passwordless root shell, and custom commands.
+- Kept SSH startup behavior on the existing safe path: no sudo password injection or automatic password typing.
+- Existing saved startup commands are recognized as presets when possible and remain editable as Custom otherwise.
+
 ## 0.8.0-beta.3 - WinSCP SFTP option parsing (2026-07-02)
 
 - WinSCP protocol selection now supports newline-separated Additional options.
