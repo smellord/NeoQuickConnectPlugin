@@ -505,7 +505,11 @@ namespace QuickConnectPlugin {
                     ? this.Settings.WinScpJumpPrivateKeyPath
                     : null,
                 PrivateKeyPassphraseFilePath = passphraseFilePath,
-                UseEntryPasswordAsPrivateKeyPassphrase = useEntryPasswordAsPassphrase
+                UseEntryPasswordAsPrivateKeyPassphrase = useEntryPasswordAsPassphrase,
+                UseSudoSftpServer = this.Settings.WinScpUseSudoSftpServer,
+                SudoSftpServerCommand = String.IsNullOrEmpty(this.Settings.WinScpSudoSftpServerCommand)
+                    ? QuickConnectPluginSettings.DefaultWinScpSudoSftpServerCommand
+                    : this.Settings.WinScpSudoSftpServerCommand
             };
 
             return new WinScpArgumentsFormatter(winScpPath, launchOptions);

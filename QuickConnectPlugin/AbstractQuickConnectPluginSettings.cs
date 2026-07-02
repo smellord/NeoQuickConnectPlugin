@@ -18,6 +18,8 @@ namespace QuickConnectPlugin {
         public virtual string WinScpManualPassphrase { get; set; }
         public virtual string WinScpPassphraseEntryUuid { get; set; }
         public virtual string WinScpPassphraseFieldName { get; set; }
+        public virtual bool WinScpUseSudoSftpServer { get; set; }
+        public virtual string WinScpSudoSftpServerCommand { get; set; }
         public virtual string PsPasswdPath { get; set; }
         public virtual string SshConnectionType { get; set; }
         public virtual bool ShowAllSshConnectionTypes { get; set; }

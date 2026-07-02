@@ -54,7 +54,7 @@ namespace QuickConnectPlugin.ArgumentsFormatters
             }
 
             AppendPrivateKeyPassphrase(stringBuilder, hostPwEntry, privateKeyPath);
-            AppendJumpHostSettings(stringBuilder);
+            AppendRawSettings(stringBuilder, protocol);
 
             return stringBuilder.ToString();
         }
@@ -91,19 +91,44 @@ namespace QuickConnectPlugin.ArgumentsFormatters
             }
         }
 
-        private void AppendJumpHostSettings(StringBuilder stringBuilder)
+        private void AppendRawSettings(StringBuilder stringBuilder, string protocol)
         {
-            if (!this.LaunchOptions.UseJumpHost || String.IsNullOrEmpty(this.LaunchOptions.JumpHostName))
+            if (!HasRawSettings(protocol))
             {
                 return;
             }
 
             stringBuilder.Append(" /rawsettings");
-            AppendRawSetting(stringBuilder, "Tunnel", "1");
-            AppendRawSetting(stringBuilder, "TunnelHostName", this.LaunchOptions.JumpHostName);
-            AppendRawSetting(stringBuilder, "TunnelPortNumber", this.LaunchOptions.JumpPort);
-            AppendRawSetting(stringBuilder, "TunnelUserName", this.LaunchOptions.JumpUsername);
-            AppendRawSetting(stringBuilder, "TunnelPublicKeyFile", this.LaunchOptions.JumpPrivateKeyPath);
+
+            if (this.LaunchOptions.UseJumpHost && !String.IsNullOrEmpty(this.LaunchOptions.JumpHostName))
+            {
+                AppendRawSetting(stringBuilder, "Tunnel", "1");
+                AppendRawSetting(stringBuilder, "TunnelHostName", this.LaunchOptions.JumpHostName);
+                AppendRawSetting(stringBuilder, "TunnelPortNumber", this.LaunchOptions.JumpPort);
+                AppendRawSetting(stringBuilder, "TunnelUserName", this.LaunchOptions.JumpUsername);
+                AppendRawSetting(stringBuilder, "TunnelPublicKeyFile", this.LaunchOptions.JumpPrivateKeyPath);
+            }
+
+            if (IsSftp(protocol) && this.LaunchOptions.UseSudoSftpServer)
+            {
+                AppendRawSetting(stringBuilder, "SftpServer", this.LaunchOptions.SudoSftpServerCommand);
+            }
+        }
+
+        private bool HasRawSettings(string protocol)
+        {
+            if (this.LaunchOptions.UseJumpHost && !String.IsNullOrEmpty(this.LaunchOptions.JumpHostName))
+            {
+                return true;
+            }
+
+            return IsSftp(protocol) && this.LaunchOptions.UseSudoSftpServer &&
+                !String.IsNullOrEmpty(this.LaunchOptions.SudoSftpServerCommand);
+        }
+
+        private static bool IsSftp(string protocol)
+        {
+            return String.Equals(protocol, WinScp.Protocol.Sftp.ToString().ToLowerInvariant(), StringComparison.OrdinalIgnoreCase);
         }
 
         private static void AppendRawSetting(StringBuilder stringBuilder, string name, string value)

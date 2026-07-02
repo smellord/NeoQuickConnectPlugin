@@ -23,6 +23,7 @@ This fork is based on upstream QuickConnectPlugin `0.6.1` and keeps the original
   - Optional WinSCP tunnel settings for SFTP/SCP connections through a configured SSH jump host.
   - Supports a global `.ppk` key fallback and WinSCP raw tunnel settings.
   - Supports private-key passphrases from the current KeePass entry password, Pageant/prompt, a selected KeePass entry field, or a manual beta setting.
+  - Optional SFTP-only root mode can start the remote SFTP server through restricted passwordless sudo.
 - Better tool detection:
   - Auto-detect PuTTY, plink, WinSCP, Windows Terminal, and PsPasswd.
   - Store common tool paths with environment variables where possible.
@@ -131,6 +132,30 @@ Passphrase sources are:
 When a KeePass-entry or manual passphrase source is used, NeoQuickConnect writes the passphrase to a short-lived temporary file and launches WinSCP with `/passwordsfromfiles /passphrase="<file>"`, then schedules the file for deletion.
 
 WinSCP requires PuTTY `.ppk` private keys for automated private-key use. Convert OpenSSH keys with WinSCP/PuTTYgen first.
+
+### Root SFTP
+
+The WinSCP jump-host dialog can enable **Start SFTP server with sudo**. This is only for SFTP sessions. It does not apply to SCP or FTP.
+
+The default command is:
+
+```bash
+sudo -n /usr/lib/openssh/sftp-server
+```
+
+The target Linux host must allow the target user to run the SFTP server without a sudo password. Use `visudo` on the target host to add a restricted sudoers rule such as:
+
+```sudoers
+<target-user> ALL=(root) NOPASSWD: /usr/lib/openssh/sftp-server
+```
+
+If your system uses another SFTP server path, try `/usr/lib/sftp-server` instead. A quick Windows-side test is:
+
+```powershell
+ssh -J <jump-user>@<jump-host> <target-user>@<target-host> 'sudo -n /usr/lib/openssh/sftp-server'
+```
+
+A blank/hanging line means the SFTP server started and is waiting for SFTP protocol input. Press `Ctrl+C` to stop the test.
 
 ## Password Changer
 

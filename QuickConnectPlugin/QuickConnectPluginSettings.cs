@@ -22,6 +22,8 @@ namespace QuickConnectPlugin {
         public const string DefaultWinScpJumpPort = "22";
         public const string DefaultWinScpPassphraseSource = WinScpPassphraseSources.EntryPassword;
         public const string DefaultWinScpPassphraseFieldName = PwDefs.PasswordField;
+        public const bool DefaultWinScpUseSudoSftpServer = false;
+        public const string DefaultWinScpSudoSftpServerCommand = "sudo -n /usr/lib/openssh/sftp-server";
 
         private readonly ICustomConfigPropertyNameFormatter formatter;
         private readonly IPluginHost plugin;
@@ -78,6 +80,12 @@ namespace QuickConnectPlugin {
             this.WinScpPassphraseFieldName = this.plugin.CustomConfig.GetString(
                 this.formatter.Format("WinScpPassphraseFieldName"),
                 DefaultWinScpPassphraseFieldName);
+            this.WinScpUseSudoSftpServer = this.plugin.CustomConfig.GetBool(
+                this.formatter.Format("WinScpUseSudoSftpServer"),
+                DefaultWinScpUseSudoSftpServer);
+            this.WinScpSudoSftpServerCommand = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("WinScpSudoSftpServerCommand"),
+                DefaultWinScpSudoSftpServerCommand);
             this.PsPasswdPath = this.plugin.CustomConfig.GetString(
                 this.formatter.Format("PsPasswdPath"),
                 QuickConnectUtils.NormalizeForStorage(QuickConnectUtils.GetPsPasswdPath() ?? string.Empty));
@@ -136,6 +144,8 @@ namespace QuickConnectPlugin {
             this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpManualPassphrase"), this.WinScpManualPassphrase);
             this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpPassphraseEntryUuid"), this.WinScpPassphraseEntryUuid);
             this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpPassphraseFieldName"), this.WinScpPassphraseFieldName);
+            this.plugin.CustomConfig.SetBool(this.formatter.Format("WinScpUseSudoSftpServer"), this.WinScpUseSudoSftpServer);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpSudoSftpServerCommand"), this.WinScpSudoSftpServerCommand);
             this.plugin.CustomConfig.SetString(this.formatter.Format("PsPasswdPath"), this.PsPasswdPath);
             this.plugin.CustomConfig.SetString(this.formatter.Format("SshConnectionType"), this.SshConnectionType);
             this.plugin.CustomConfig.SetBool(this.formatter.Format("ShowAllSshConnectionTypes"), this.ShowAllSshConnectionTypes);

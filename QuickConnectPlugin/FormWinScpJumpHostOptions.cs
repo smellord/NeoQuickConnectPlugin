@@ -15,11 +15,13 @@ namespace QuickConnectPlugin {
         private readonly RadioButton radioButtonPageant;
         private readonly RadioButton radioButtonKeePassEntry;
         private readonly RadioButton radioButtonManual;
+        private readonly CheckBox checkBoxUseSudoSftpServer;
         private readonly TextBox textBoxHostName;
         private readonly TextBox textBoxPort;
         private readonly TextBox textBoxUsername;
         private readonly TextBox textBoxPrivateKeyPath;
         private readonly TextBox textBoxManualPassphrase;
+        private readonly TextBox textBoxSudoSftpServerCommand;
 
         public string JumpHostName { get; private set; }
         public string JumpPort { get; private set; }
@@ -29,6 +31,8 @@ namespace QuickConnectPlugin {
         public string ManualPassphrase { get; private set; }
         public string PassphraseEntryUuid { get; private set; }
         public string PassphraseFieldName { get; private set; }
+        public bool UseSudoSftpServer { get; private set; }
+        public string SudoSftpServerCommand { get; private set; }
 
         public FormWinScpJumpHostOptions(
             IQuickConnectPluginSettings settings,
@@ -42,7 +46,7 @@ namespace QuickConnectPlugin {
             this.MinimizeBox = false;
             this.ShowInTaskbar = false;
             this.ShowIcon = false;
-            this.ClientSize = new Size(478, 332);
+            this.ClientSize = new Size(478, 419);
 
             Label labelHostName = CreateLabel("Jump host", 18, 22, 95);
             this.textBoxHostName = CreateTextBox(118, 19, 220);
@@ -121,17 +125,45 @@ namespace QuickConnectPlugin {
             groupBoxPassphrase.Controls.Add(this.radioButtonManual);
             groupBoxPassphrase.Controls.Add(this.textBoxManualPassphrase);
 
+            GroupBox groupBoxRootSftp = new GroupBox();
+            groupBoxRootSftp.Text = "Root SFTP";
+            groupBoxRootSftp.Location = new Point(12, 287);
+            groupBoxRootSftp.Size = new Size(452, 80);
+
+            this.checkBoxUseSudoSftpServer = new CheckBox();
+            this.checkBoxUseSudoSftpServer.Text = "Start SFTP server with sudo";
+            this.checkBoxUseSudoSftpServer.Location = new Point(16, 22);
+            this.checkBoxUseSudoSftpServer.Size = new Size(210, 20);
+            this.checkBoxUseSudoSftpServer.Checked = settings.WinScpUseSudoSftpServer;
+
+            Button buttonSudoSftpInfo = new Button();
+            buttonSudoSftpInfo.Text = "?";
+            buttonSudoSftpInfo.Location = new Point(405, 19);
+            buttonSudoSftpInfo.Size = new Size(25, 24);
+            buttonSudoSftpInfo.Click += ButtonSudoSftpInfo_Click;
+
+            Label labelSudoSftpCommand = CreateLabel("Command", 16, 51, 65);
+            this.textBoxSudoSftpServerCommand = CreateTextBox(87, 48, 343);
+            this.textBoxSudoSftpServerCommand.Text = String.IsNullOrEmpty(settings.WinScpSudoSftpServerCommand)
+                ? QuickConnectPluginSettings.DefaultWinScpSudoSftpServerCommand
+                : settings.WinScpSudoSftpServerCommand;
+
+            groupBoxRootSftp.Controls.Add(this.checkBoxUseSudoSftpServer);
+            groupBoxRootSftp.Controls.Add(buttonSudoSftpInfo);
+            groupBoxRootSftp.Controls.Add(labelSudoSftpCommand);
+            groupBoxRootSftp.Controls.Add(this.textBoxSudoSftpServerCommand);
+
             Button buttonOK = new Button();
             buttonOK.Text = "OK";
             buttonOK.DialogResult = DialogResult.OK;
-            buttonOK.Location = new Point(308, 295);
+            buttonOK.Location = new Point(308, 383);
             buttonOK.Size = new Size(75, 23);
             buttonOK.Click += ButtonOK_Click;
 
             Button buttonCancel = new Button();
             buttonCancel.Text = "Cancel";
             buttonCancel.DialogResult = DialogResult.Cancel;
-            buttonCancel.Location = new Point(389, 295);
+            buttonCancel.Location = new Point(389, 383);
             buttonCancel.Size = new Size(75, 23);
 
             this.Controls.Add(labelHostName);
@@ -144,6 +176,7 @@ namespace QuickConnectPlugin {
             this.Controls.Add(this.textBoxPrivateKeyPath);
             this.Controls.Add(buttonBrowseKey);
             this.Controls.Add(groupBoxPassphrase);
+            this.Controls.Add(groupBoxRootSftp);
             this.Controls.Add(buttonOK);
             this.Controls.Add(buttonCancel);
 
@@ -155,7 +188,9 @@ namespace QuickConnectPlugin {
             this.radioButtonPageant.CheckedChanged += PassphraseSourceChanged;
             this.radioButtonKeePassEntry.CheckedChanged += PassphraseSourceChanged;
             this.radioButtonManual.CheckedChanged += PassphraseSourceChanged;
+            this.checkBoxUseSudoSftpServer.CheckedChanged += SudoSftpServerChanged;
             UpdatePassphraseControls();
+            UpdateSudoSftpServerControls();
         }
 
         private static Label CreateLabel(string text, int x, int y, int width)
@@ -249,6 +284,26 @@ namespace QuickConnectPlugin {
             this.textBoxManualPassphrase.Enabled = this.radioButtonManual.Checked;
         }
 
+        private void SudoSftpServerChanged(object sender, EventArgs e)
+        {
+            UpdateSudoSftpServerControls();
+        }
+
+        private void UpdateSudoSftpServerControls()
+        {
+            this.textBoxSudoSftpServerCommand.Enabled = this.checkBoxUseSudoSftpServer.Checked;
+        }
+
+        private void ButtonSudoSftpInfo_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(
+                this,
+                "Root SFTP starts the remote SFTP server through sudo. It works only for WinSCP SFTP sessions, not SCP or FTP, and sudo must not ask for a password.\n\nOn the Linux target, use visudo to add a restricted rule like:\n\n<target-user> ALL=(root) NOPASSWD: /usr/lib/openssh/sftp-server\n\nIf your server uses another path, try /usr/lib/sftp-server instead.\n\nQuick test from Windows:\nssh -J <jump-user>@<jump-host> <target-user>@<target-host> 'sudo -n /usr/lib/openssh/sftp-server'\n\nA blank/hanging line means the SFTP server started successfully; press Ctrl+C to stop the test.",
+                "Root SFTP Requirements",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+        }
+
         private void ButtonBrowseKey_Click(object sender, EventArgs e)
         {
             using (var openFileDialog = new OpenFileDialog())
@@ -285,6 +340,10 @@ namespace QuickConnectPlugin {
             this.PassphraseFieldName = this.comboBoxPassphraseField.SelectedItem == null
                 ? QuickConnectPluginSettings.DefaultWinScpPassphraseFieldName
                 : this.comboBoxPassphraseField.SelectedItem.ToString();
+            this.UseSudoSftpServer = this.checkBoxUseSudoSftpServer.Checked;
+            this.SudoSftpServerCommand = String.IsNullOrEmpty(this.textBoxSudoSftpServerCommand.Text.Trim())
+                ? QuickConnectPluginSettings.DefaultWinScpSudoSftpServerCommand
+                : this.textBoxSudoSftpServerCommand.Text.Trim();
 
             var selectedEntry = this.comboBoxPassphraseEntry.SelectedItem as KeePassEntryReference;
             this.PassphraseEntryUuid = selectedEntry == null ? string.Empty : selectedEntry.UuidHex;

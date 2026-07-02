@@ -17,5 +17,9 @@ namespace QuickConnectPlugin.ArgumentsFormatters {
         public string PrivateKeyPassphraseFilePath { get; set; }
 
         public bool UseEntryPasswordAsPrivateKeyPassphrase { get; set; }
+
+        public bool UseSudoSftpServer { get; set; }
+
+        public string SudoSftpServerCommand { get; set; }
     }
 }

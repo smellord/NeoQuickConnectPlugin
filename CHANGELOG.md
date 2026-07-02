@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0-beta.2 - WinSCP root SFTP beta (2026-07-02)
+
+- Added an optional WinSCP SFTP sudo-server setting for root-level SFTP sessions.
+- Added a Root SFTP section in the WinSCP jump-host dialog with a default command of `sudo -n /usr/lib/openssh/sftp-server`.
+- Added an info button explaining that Root SFTP requires SFTP, passwordless sudo for the SFTP server binary, and a restricted sudoers rule.
+- WinSCP now emits the sudo server command as a quoted raw setting, for example `SftpServer=sudo -n /usr/lib/openssh/sftp-server`.
+- Root SFTP is ignored for SCP/FTP style WinSCP sessions.
+
 ## 0.8.0-beta.1 - WinSCP jump host beta (2026-07-02)
 
 - Added an optional global SSH startup command for PuTTY, Terminal (SSH), and Terminal (plink).

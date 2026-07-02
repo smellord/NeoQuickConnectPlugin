@@ -65,6 +65,14 @@ namespace QuickConnectPlugin {
         /// </summary>
         String WinScpPassphraseFieldName { get; set; }
         /// <summary>
+        /// Gets or sets a value indicating whether WinSCP should start the SFTP server via sudo.
+        /// </summary>
+        bool WinScpUseSudoSftpServer { get; set; }
+        /// <summary>
+        /// Gets or sets the WinSCP sudo SFTP server startup command.
+        /// </summary>
+        String WinScpSudoSftpServerCommand { get; set; }
+        /// <summary>
         /// Gets or sets a value indicating the path of the PsPasswd utility.
         /// </summary>
         String PsPasswdPath { get; set; }

@@ -124,6 +124,59 @@ namespace QuickConnectPlugin.Tests.ArgumentsFormatters
         }
 
         [Test]
+        public void FormatWithSudoSftpServer()
+        {
+            InMemoryHostPwEntry pwEntry = new InMemoryHostPwEntry()
+            {
+                Username = "gmelis",
+                Password = "12345678",
+                IPAddress = "s99-ew-mgmt",
+                AdditionalOptions = "protocol:sftp"
+            };
+
+            WinScpArgumentsFormatter argumentsFormatter = new WinScpArgumentsFormatter(
+                "WinSCP.exe",
+                new WinScpLaunchOptions()
+                {
+                    UseJumpHost = true,
+                    JumpHostName = "s-1564-ew-test",
+                    JumpPort = "22",
+                    JumpUsername = "gianluca.melis",
+                    JumpPrivateKeyPath = "C:\\Users\\gianluca.melis\\.ssh\\id_ed25519.ppk",
+                    DefaultPrivateKeyPath = "C:\\Users\\gianluca.melis\\.ssh\\id_ed25519.ppk",
+                    UseSudoSftpServer = true,
+                    SudoSftpServerCommand = QuickConnectPluginSettings.DefaultWinScpSudoSftpServerCommand
+                });
+
+            Assert.AreEqual(
+                "\"WinSCP.exe\" sftp://gmelis@s99-ew-mgmt /privatekey=\"C:\\Users\\gianluca.melis\\.ssh\\id_ed25519.ppk\" /rawsettings \"Tunnel=1\" \"TunnelHostName=s-1564-ew-test\" \"TunnelPortNumber=22\" \"TunnelUserName=gianluca.melis\" \"TunnelPublicKeyFile=C:\\Users\\gianluca.melis\\.ssh\\id_ed25519.ppk\" \"SftpServer=sudo -n /usr/lib/openssh/sftp-server\"",
+                argumentsFormatter.Format(pwEntry));
+        }
+
+        [Test]
+        public void FormatWithSudoSftpServerDoesNotAffectScp()
+        {
+            InMemoryHostPwEntry pwEntry = new InMemoryHostPwEntry()
+            {
+                Username = "gmelis",
+                Password = "12345678",
+                IPAddress = "s99-ew-mgmt"
+            };
+
+            WinScpArgumentsFormatter argumentsFormatter = new WinScpArgumentsFormatter(
+                "WinSCP.exe",
+                new WinScpLaunchOptions()
+                {
+                    UseSudoSftpServer = true,
+                    SudoSftpServerCommand = QuickConnectPluginSettings.DefaultWinScpSudoSftpServerCommand
+                });
+
+            Assert.AreEqual(
+                "\"WinSCP.exe\" scp://gmelis:\"12345678\"@s99-ew-mgmt",
+                argumentsFormatter.Format(pwEntry));
+        }
+
+        [Test]
         public void FormatWithPortFromHostAddress()
         {
             InMemoryHostPwEntry pwEntry = new InMemoryHostPwEntry()

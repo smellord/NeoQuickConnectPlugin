@@ -40,6 +40,8 @@ namespace QuickConnectPlugin
         private string winScpManualPassphrase;
         private string winScpPassphraseEntryUuid;
         private string winScpPassphraseFieldName;
+        private bool winScpUseSudoSftpServer;
+        private string winScpSudoSftpServerCommand;
 
         public FormOptions(string pluginName, IQuickConnectPluginSettings settings, ICollection<string> dbFields)
             : this(pluginName, settings, dbFields, null)
@@ -87,6 +89,10 @@ namespace QuickConnectPlugin
             this.winScpPassphraseFieldName = String.IsNullOrEmpty(settings.WinScpPassphraseFieldName)
                 ? QuickConnectPluginSettings.DefaultWinScpPassphraseFieldName
                 : settings.WinScpPassphraseFieldName;
+            this.winScpUseSudoSftpServer = settings.WinScpUseSudoSftpServer;
+            this.winScpSudoSftpServerCommand = String.IsNullOrEmpty(settings.WinScpSudoSftpServerCommand)
+                ? QuickConnectPluginSettings.DefaultWinScpSudoSftpServerCommand
+                : settings.WinScpSudoSftpServerCommand;
             this.checkBoxWinScpUseJumpHost.Checked = this.winScpUseJumpHost;
 
             this.textBoxPsPasswdPath.Text = settings.PsPasswdPath;
@@ -278,6 +284,8 @@ namespace QuickConnectPlugin
             this.settings.WinScpManualPassphrase = this.winScpManualPassphrase;
             this.settings.WinScpPassphraseEntryUuid = this.winScpPassphraseEntryUuid;
             this.settings.WinScpPassphraseFieldName = this.winScpPassphraseFieldName;
+            this.settings.WinScpUseSudoSftpServer = this.winScpUseSudoSftpServer;
+            this.settings.WinScpSudoSftpServerCommand = this.winScpSudoSftpServerCommand;
             this.settings.PsPasswdPath = this.textBoxPsPasswdPath.Text;
             this.settings.ShowAllSshConnectionTypes = this.checkBoxShowAllSshOptions.Checked;
             this.settings.EnableSshStartupCommand = this.checkBoxEnableSshStartupCommand.Checked;
@@ -458,6 +466,8 @@ namespace QuickConnectPlugin
                 this.winScpManualPassphrase = form.ManualPassphrase;
                 this.winScpPassphraseEntryUuid = form.PassphraseEntryUuid;
                 this.winScpPassphraseFieldName = form.PassphraseFieldName;
+                this.winScpUseSudoSftpServer = form.UseSudoSftpServer;
+                this.winScpSudoSftpServerCommand = form.SudoSftpServerCommand;
                 this.SettingsChanged(sender, e);
             }
         }
@@ -473,7 +483,9 @@ namespace QuickConnectPlugin
                 WinScpPassphraseSource = this.winScpPassphraseSource,
                 WinScpManualPassphrase = this.winScpManualPassphrase,
                 WinScpPassphraseEntryUuid = this.winScpPassphraseEntryUuid,
-                WinScpPassphraseFieldName = this.winScpPassphraseFieldName
+                WinScpPassphraseFieldName = this.winScpPassphraseFieldName,
+                WinScpUseSudoSftpServer = this.winScpUseSudoSftpServer,
+                WinScpSudoSftpServerCommand = this.winScpSudoSftpServerCommand
             };
         }
 

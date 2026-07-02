@@ -33,6 +33,6 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("0.8.0.0")]
-[assembly: AssemblyFileVersion("0.8.0.1")]
-[assembly: AssemblyInformationalVersion("0.8.0-beta.1")]
+[assembly: AssemblyFileVersion("0.8.0.2")]
+[assembly: AssemblyInformationalVersion("0.8.0-beta.2")]
 [assembly: InternalsVisibleTo("QuickConnectPlugin.Tests")]
