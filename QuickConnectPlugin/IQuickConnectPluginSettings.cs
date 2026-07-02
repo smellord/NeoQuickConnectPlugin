@@ -29,6 +29,42 @@ namespace QuickConnectPlugin {
         /// </summary>
         String WinScpPath { get; set; }
         /// <summary>
+        /// Gets or sets a value indicating whether WinSCP should connect through a jump host.
+        /// </summary>
+        bool WinScpUseJumpHost { get; set; }
+        /// <summary>
+        /// Gets or sets the WinSCP jump host name.
+        /// </summary>
+        String WinScpJumpHostName { get; set; }
+        /// <summary>
+        /// Gets or sets the WinSCP jump host SSH port.
+        /// </summary>
+        String WinScpJumpPort { get; set; }
+        /// <summary>
+        /// Gets or sets the WinSCP jump host username.
+        /// </summary>
+        String WinScpJumpUsername { get; set; }
+        /// <summary>
+        /// Gets or sets the WinSCP private key path used for jump-host connections.
+        /// </summary>
+        String WinScpJumpPrivateKeyPath { get; set; }
+        /// <summary>
+        /// Gets or sets how WinSCP receives the private key passphrase.
+        /// </summary>
+        String WinScpPassphraseSource { get; set; }
+        /// <summary>
+        /// Gets or sets the manual WinSCP private key passphrase.
+        /// </summary>
+        String WinScpManualPassphrase { get; set; }
+        /// <summary>
+        /// Gets or sets the KeePass entry UUID that contains the WinSCP private key passphrase.
+        /// </summary>
+        String WinScpPassphraseEntryUuid { get; set; }
+        /// <summary>
+        /// Gets or sets the KeePass field containing the WinSCP private key passphrase.
+        /// </summary>
+        String WinScpPassphraseFieldName { get; set; }
+        /// <summary>
         /// Gets or sets a value indicating the path of the PsPasswd utility.
         /// </summary>
         String PsPasswdPath { get; set; }

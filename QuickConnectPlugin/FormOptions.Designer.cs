@@ -31,6 +31,8 @@ namespace QuickConnectPlugin {
             this.buttonConfigureWinScpPath = new System.Windows.Forms.Button();
             this.buttonInstallWinScp = new System.Windows.Forms.Button();
             this.buttonAutoSetWinScpPath = new System.Windows.Forms.Button();
+            this.buttonConfigureWinScpJumpHost = new System.Windows.Forms.Button();
+            this.checkBoxWinScpUseJumpHost = new System.Windows.Forms.CheckBox();
             this.textBoxWinScpPath = new System.Windows.Forms.TextBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.pictureBoxPuttyPathWarningIcon = new System.Windows.Forms.PictureBox();
@@ -115,7 +117,7 @@ namespace QuickConnectPlugin {
             this.tabControl.Location = new System.Drawing.Point(12, 12);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
-            this.tabControl.Size = new System.Drawing.Size(305, 480);
+            this.tabControl.Size = new System.Drawing.Size(305, 522);
             this.tabControl.TabIndex = 0;
             //
             // tabPage1
@@ -126,7 +128,7 @@ namespace QuickConnectPlugin {
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(297, 454);
+            this.tabPage1.Size = new System.Drawing.Size(297, 496);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "General";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -138,13 +140,15 @@ namespace QuickConnectPlugin {
             this.groupBox3.Controls.Add(this.buttonConfigureWinScpPath);
             this.groupBox3.Controls.Add(this.buttonInstallWinScp);
             this.groupBox3.Controls.Add(this.buttonAutoSetWinScpPath);
+            this.groupBox3.Controls.Add(this.buttonConfigureWinScpJumpHost);
+            this.groupBox3.Controls.Add(this.checkBoxWinScpUseJumpHost);
             this.groupBox3.Controls.Add(this.textBoxWinScpPath);
             this.groupBox3.Location = new System.Drawing.Point(3, 331);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(290, 110);
+            this.groupBox3.Size = new System.Drawing.Size(290, 152);
             this.groupBox3.TabIndex = 8;
             this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "WinSCP Path";
+            this.groupBox3.Text = "WinSCP Settings";
             // 
             // pictureBoxWinScpPathWarningIcon
             // 
@@ -197,7 +201,27 @@ namespace QuickConnectPlugin {
             this.buttonAutoSetWinScpPath.Text = "Auto set";
             this.buttonAutoSetWinScpPath.UseVisualStyleBackColor = true;
             this.buttonAutoSetWinScpPath.Click += new System.EventHandler(this.ButtonAutoSetWinScpPath_Click);
-            // 
+            //
+            // buttonConfigureWinScpJumpHost
+            //
+            this.buttonConfigureWinScpJumpHost.Location = new System.Drawing.Point(151, 115);
+            this.buttonConfigureWinScpJumpHost.Name = "buttonConfigureWinScpJumpHost";
+            this.buttonConfigureWinScpJumpHost.Size = new System.Drawing.Size(126, 24);
+            this.buttonConfigureWinScpJumpHost.TabIndex = 8;
+            this.buttonConfigureWinScpJumpHost.Text = "Jump host...";
+            this.buttonConfigureWinScpJumpHost.UseVisualStyleBackColor = true;
+            this.buttonConfigureWinScpJumpHost.Click += new System.EventHandler(this.ButtonConfigureWinScpJumpHost_Click);
+            //
+            // checkBoxWinScpUseJumpHost
+            //
+            this.checkBoxWinScpUseJumpHost.AutoSize = true;
+            this.checkBoxWinScpUseJumpHost.Location = new System.Drawing.Point(19, 120);
+            this.checkBoxWinScpUseJumpHost.Name = "checkBoxWinScpUseJumpHost";
+            this.checkBoxWinScpUseJumpHost.Size = new System.Drawing.Size(93, 17);
+            this.checkBoxWinScpUseJumpHost.TabIndex = 7;
+            this.checkBoxWinScpUseJumpHost.Text = "Use jump host";
+            this.checkBoxWinScpUseJumpHost.UseVisualStyleBackColor = true;
+            //
             // textBoxWinScpPath
             // 
             this.textBoxWinScpPath.Location = new System.Drawing.Point(19, 19);
@@ -391,7 +415,7 @@ namespace QuickConnectPlugin {
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(297, 454);
+            this.tabPage2.Size = new System.Drawing.Size(297, 496);
             this.tabPage2.TabIndex = 2;
             this.tabPage2.Text = "Password Changer";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -540,7 +564,7 @@ namespace QuickConnectPlugin {
             this.tabPage3.Controls.Add(this.groupBox12);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(297, 454);
+            this.tabPage3.Size = new System.Drawing.Size(297, 496);
             this.tabPage3.TabIndex = 1;
             this.tabPage3.Text = "Map Fields";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -632,7 +656,7 @@ namespace QuickConnectPlugin {
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(297, 454);
+            this.tabPage4.Size = new System.Drawing.Size(297, 496);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "Shortcut Keys";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -736,7 +760,7 @@ namespace QuickConnectPlugin {
             // 
             // buttonApply
             // 
-            this.buttonApply.Location = new System.Drawing.Point(238, 489);
+            this.buttonApply.Location = new System.Drawing.Point(238, 531);
             this.buttonApply.Name = "buttonApply";
             this.buttonApply.Size = new System.Drawing.Size(75, 23);
             this.buttonApply.TabIndex = 1;
@@ -747,7 +771,7 @@ namespace QuickConnectPlugin {
             // buttonCancel
             // 
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(157, 489);
+            this.buttonCancel.Location = new System.Drawing.Point(157, 531);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 2;
@@ -757,7 +781,7 @@ namespace QuickConnectPlugin {
             // buttonOK
             // 
             this.buttonOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.buttonOK.Location = new System.Drawing.Point(76, 489);
+            this.buttonOK.Location = new System.Drawing.Point(76, 531);
             this.buttonOK.Name = "buttonOK";
             this.buttonOK.Size = new System.Drawing.Size(75, 23);
             this.buttonOK.TabIndex = 3;
@@ -771,7 +795,7 @@ namespace QuickConnectPlugin {
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
-            this.ClientSize = new System.Drawing.Size(329, 528);
+            this.ClientSize = new System.Drawing.Size(329, 570);
             this.Controls.Add(this.buttonOK);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonApply);
@@ -840,6 +864,8 @@ namespace QuickConnectPlugin {
         private System.Windows.Forms.Button buttonConfigureWinScpPath;
         private System.Windows.Forms.Button buttonInstallWinScp;
         private System.Windows.Forms.Button buttonAutoSetWinScpPath;
+        private System.Windows.Forms.Button buttonConfigureWinScpJumpHost;
+        private System.Windows.Forms.CheckBox checkBoxWinScpUseJumpHost;
         private System.Windows.Forms.TextBox textBoxWinScpPath;
         private System.Windows.Forms.GroupBox groupBox12;
         private System.Windows.Forms.ComboBox comboBoxAdditionalOptionsMapFieldName;

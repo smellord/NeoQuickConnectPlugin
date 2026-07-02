@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 using QuickConnectPlugin.ArgumentsFormatters;
 
 namespace QuickConnectPlugin.Tests.ArgumentsFormatters
@@ -62,7 +62,65 @@ namespace QuickConnectPlugin.Tests.ArgumentsFormatters
             };
 
             WinScpArgumentsFormatter argumentsFormatter = new WinScpArgumentsFormatter("WinSCP.exe");
-            Assert.AreEqual("\"WinSCP.exe\" scp://root@127.0.0.1 -privatekey=\"C:\\Key Files\\PrivateKey.ppk\" -passphrase=\"12345678\"", argumentsFormatter.Format(pwEntry));
+            Assert.AreEqual("\"WinSCP.exe\" scp://root@127.0.0.1 /privatekey=\"C:\\Key Files\\PrivateKey.ppk\" /passphrase=\"12345678\"", argumentsFormatter.Format(pwEntry));
+        }
+
+        [Test]
+        public void FormatWithJumpHost()
+        {
+            InMemoryHostPwEntry pwEntry = new InMemoryHostPwEntry()
+            {
+                Username = "gmelis",
+                Password = "12345678",
+                IPAddress = "s99-eanvapp1",
+                AdditionalOptions = "protocol:sftp"
+            };
+
+            WinScpArgumentsFormatter argumentsFormatter = new WinScpArgumentsFormatter(
+                "WinSCP.exe",
+                new WinScpLaunchOptions()
+                {
+                    UseJumpHost = true,
+                    JumpHostName = "s-1564-ew-test",
+                    JumpPort = "22",
+                    JumpUsername = "gianluca.melis",
+                    JumpPrivateKeyPath = "C:\\Users\\gianluca.melis\\.ssh\\id_ed25519.ppk",
+                    DefaultPrivateKeyPath = "C:\\Users\\gianluca.melis\\.ssh\\id_ed25519.ppk",
+                    PrivateKeyPassphraseFilePath = "C:\\Temp\\winscp-passphrase.txt"
+                });
+
+            Assert.AreEqual(
+                "\"WinSCP.exe\" sftp://gmelis@s99-eanvapp1 /privatekey=\"C:\\Users\\gianluca.melis\\.ssh\\id_ed25519.ppk\" /passwordsfromfiles /passphrase=\"C:\\Temp\\winscp-passphrase.txt\" /rawsettings \"Tunnel=1\" \"TunnelHostName=s-1564-ew-test\" \"TunnelPortNumber=22\" \"TunnelUserName=gianluca.melis\" \"TunnelPublicKeyFile=C:\\Users\\gianluca.melis\\.ssh\\id_ed25519.ppk\"",
+                argumentsFormatter.Format(pwEntry));
+        }
+
+        [Test]
+        public void FormatWithJumpHostKeepsEntryKeyPriority()
+        {
+            InMemoryHostPwEntry pwEntry = new InMemoryHostPwEntry()
+            {
+                Username = "gmelis",
+                Password = "12345678",
+                IPAddress = "s99-eanvapp1",
+                AdditionalOptions = "protocol:sftp;key:\"C:\\Entry\\entry.ppk\""
+            };
+
+            WinScpArgumentsFormatter argumentsFormatter = new WinScpArgumentsFormatter(
+                "WinSCP.exe",
+                new WinScpLaunchOptions()
+                {
+                    UseJumpHost = true,
+                    JumpHostName = "s-1564-ew-test",
+                    JumpPort = "22",
+                    JumpUsername = "gianluca.melis",
+                    JumpPrivateKeyPath = "C:\\Tunnel\\tunnel.ppk",
+                    DefaultPrivateKeyPath = "C:\\Fallback\\fallback.ppk",
+                    UseEntryPasswordAsPrivateKeyPassphrase = false
+                });
+
+            Assert.AreEqual(
+                "\"WinSCP.exe\" sftp://gmelis@s99-eanvapp1 /privatekey=\"C:\\Entry\\entry.ppk\" /rawsettings \"Tunnel=1\" \"TunnelHostName=s-1564-ew-test\" \"TunnelPortNumber=22\" \"TunnelUserName=gianluca.melis\" \"TunnelPublicKeyFile=C:\\Tunnel\\tunnel.ppk\"",
+                argumentsFormatter.Format(pwEntry));
         }
 
         [Test]

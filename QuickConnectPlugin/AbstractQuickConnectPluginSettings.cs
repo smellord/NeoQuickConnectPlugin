@@ -9,6 +9,15 @@ namespace QuickConnectPlugin {
         public virtual bool AddChangePasswordMenuItem { get; set; }
         public virtual string PuttyPath { get; set; }
         public virtual string WinScpPath { get; set; }
+        public virtual bool WinScpUseJumpHost { get; set; }
+        public virtual string WinScpJumpHostName { get; set; }
+        public virtual string WinScpJumpPort { get; set; }
+        public virtual string WinScpJumpUsername { get; set; }
+        public virtual string WinScpJumpPrivateKeyPath { get; set; }
+        public virtual string WinScpPassphraseSource { get; set; }
+        public virtual string WinScpManualPassphrase { get; set; }
+        public virtual string WinScpPassphraseEntryUuid { get; set; }
+        public virtual string WinScpPassphraseFieldName { get; set; }
         public virtual string PsPasswdPath { get; set; }
         public virtual string SshConnectionType { get; set; }
         public virtual bool ShowAllSshConnectionTypes { get; set; }

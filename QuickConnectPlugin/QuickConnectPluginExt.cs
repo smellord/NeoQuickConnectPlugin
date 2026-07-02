@@ -5,6 +5,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Security.Permissions;
+using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 using DisruptiveSoftware.Time.Clocks;
 using KeePass.Plugins;
@@ -113,7 +115,7 @@ namespace QuickConnectPlugin {
                     {
                         KeysHelper.UnregisterKeePassGlobalHotKeys();
 
-                        using (var form = new FormOptions(Title, this.Settings, fields))
+                        using (var form = new FormOptions(Title, this.Settings, fields, this.pluginHost.Database))
                         {
                             form.ShowDialog(pluginHost.MainWindow);
                         }
@@ -279,8 +281,10 @@ namespace QuickConnectPlugin {
                         {
                             try
                             {
-                                var argsFormatter = new WinScpArgumentsFormatter(winScpPath);
+                                string passphraseFilePath = null;
+                                var argsFormatter = this.CreateWinScpArgumentsFormatter(winScpPath, out passphraseFilePath);
                                 ProcessUtils.StartDetached(argsFormatter.Format(selectedEntry));
+                                this.DeleteFileLater(passphraseFilePath);
                             }
                             catch (Exception ex)
                             {
@@ -465,8 +469,10 @@ namespace QuickConnectPlugin {
                 menuItem.Click += new EventHandler(
                     delegate(object obj, EventArgs ev) {
                         try {
-                            IArgumentsFormatter argsFormatter = new WinScpArgumentsFormatter(winScpPath);
+                            string passphraseFilePath = null;
+                            IArgumentsFormatter argsFormatter = this.CreateWinScpArgumentsFormatter(winScpPath, out passphraseFilePath);
                             ProcessUtils.StartDetached(argsFormatter.Format(hostPwEntry));
+                            this.DeleteFileLater(passphraseFilePath);
                         }
                         catch (Exception ex) {
                             log(ex);
@@ -476,6 +482,130 @@ namespace QuickConnectPlugin {
                 menuItems.Add(menuItem);
             };
             return menuItems;
+        }
+
+        private IArgumentsFormatter CreateWinScpArgumentsFormatter(string winScpPath, out string passphraseFilePath) {
+            passphraseFilePath = this.CreateWinScpPassphraseFile();
+
+            var useEntryPasswordAsPassphrase = String.Equals(
+                this.Settings.WinScpPassphraseSource,
+                WinScpPassphraseSources.EntryPassword,
+                StringComparison.OrdinalIgnoreCase);
+
+            var launchOptions = new WinScpLaunchOptions()
+            {
+                UseJumpHost = this.Settings.WinScpUseJumpHost,
+                JumpHostName = this.Settings.WinScpJumpHostName,
+                JumpPort = String.IsNullOrEmpty(this.Settings.WinScpJumpPort)
+                    ? QuickConnectPluginSettings.DefaultWinScpJumpPort
+                    : this.Settings.WinScpJumpPort,
+                JumpUsername = this.Settings.WinScpJumpUsername,
+                JumpPrivateKeyPath = this.Settings.WinScpJumpPrivateKeyPath,
+                DefaultPrivateKeyPath = this.Settings.WinScpUseJumpHost
+                    ? this.Settings.WinScpJumpPrivateKeyPath
+                    : null,
+                PrivateKeyPassphraseFilePath = passphraseFilePath,
+                UseEntryPasswordAsPrivateKeyPassphrase = useEntryPasswordAsPassphrase
+            };
+
+            return new WinScpArgumentsFormatter(winScpPath, launchOptions);
+        }
+
+        private string CreateWinScpPassphraseFile() {
+            var passphrase = this.GetWinScpPrivateKeyPassphrase();
+
+            if (String.IsNullOrEmpty(passphrase)) {
+                return null;
+            }
+
+            var directoryPath = Path.Combine(Path.GetTempPath(), "NeoQuickConnectPlugin");
+            Directory.CreateDirectory(directoryPath);
+
+            var filePath = Path.Combine(
+                directoryPath,
+                String.Format("winscp-passphrase-{0}.txt", Guid.NewGuid().ToString("N")));
+
+            File.WriteAllText(filePath, passphrase, new UTF8Encoding(false));
+            File.SetAttributes(filePath, File.GetAttributes(filePath) | FileAttributes.Temporary);
+
+            return filePath;
+        }
+
+        private string GetWinScpPrivateKeyPassphrase() {
+            if (String.Equals(this.Settings.WinScpPassphraseSource, WinScpPassphraseSources.Manual, StringComparison.OrdinalIgnoreCase)) {
+                return this.Settings.WinScpManualPassphrase;
+            }
+
+            if (String.Equals(this.Settings.WinScpPassphraseSource, WinScpPassphraseSources.KeePassEntry, StringComparison.OrdinalIgnoreCase)) {
+                return this.GetWinScpPassphraseFromKeePassEntry();
+            }
+
+            return null;
+        }
+
+        private string GetWinScpPassphraseFromKeePassEntry() {
+            if (this.pluginHost == null ||
+                this.pluginHost.Database == null ||
+                !this.pluginHost.Database.IsOpen ||
+                String.IsNullOrEmpty(this.Settings.WinScpPassphraseEntryUuid)) {
+                return null;
+            }
+
+            PwUuid uuid = null;
+            if (!TryParsePwUuid(this.Settings.WinScpPassphraseEntryUuid, out uuid)) {
+                return null;
+            }
+
+            var entry = this.pluginHost.Database.RootGroup.FindEntry(uuid, true);
+            if (entry == null) {
+                return null;
+            }
+
+            var fieldName = String.IsNullOrEmpty(this.Settings.WinScpPassphraseFieldName)
+                ? QuickConnectPluginSettings.DefaultWinScpPassphraseFieldName
+                : this.Settings.WinScpPassphraseFieldName;
+
+            return PwEntryUtils.ReadCompiledSafeString(this.pluginHost.Database, entry, fieldName);
+        }
+
+        private static bool TryParsePwUuid(string uuidHex, out PwUuid uuid) {
+            uuid = null;
+
+            if (String.IsNullOrEmpty(uuidHex) || uuidHex.Length != 32) {
+                return false;
+            }
+
+            var bytes = new byte[16];
+            for (var i = 0; i < bytes.Length; i++) {
+                var value = uuidHex.Substring(i * 2, 2);
+                byte parsed;
+                if (!byte.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out parsed)) {
+                    return false;
+                }
+                bytes[i] = parsed;
+            }
+
+            uuid = new PwUuid(bytes);
+            return true;
+        }
+
+        private void DeleteFileLater(string filePath) {
+            if (String.IsNullOrEmpty(filePath)) {
+                return;
+            }
+
+            ThreadPool.QueueUserWorkItem(delegate {
+                Thread.Sleep(TimeSpan.FromSeconds(30));
+
+                try {
+                    if (File.Exists(filePath)) {
+                        File.Delete(filePath);
+                    }
+                }
+                catch (Exception ex) {
+                    Debug.WriteLine(ex);
+                }
+            });
         }
 
         private bool HasSshConnectionMethod(IHostPwEntry hostPwEntry) {

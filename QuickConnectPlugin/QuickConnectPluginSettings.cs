@@ -18,6 +18,10 @@ namespace QuickConnectPlugin {
         public const bool DefaultEnableSshStartupCommand = false;
         public const string DefaultSshStartupCommand = "sudo -v; exec bash -l";
         public const string DefaultWindowsPasswordResetMethod = WindowsPasswordResetMethods.PsPasswd;
+        public const bool DefaultWinScpUseJumpHost = false;
+        public const string DefaultWinScpJumpPort = "22";
+        public const string DefaultWinScpPassphraseSource = WinScpPassphraseSources.EntryPassword;
+        public const string DefaultWinScpPassphraseFieldName = PwDefs.PasswordField;
 
         private readonly ICustomConfigPropertyNameFormatter formatter;
         private readonly IPluginHost plugin;
@@ -47,6 +51,33 @@ namespace QuickConnectPlugin {
             this.WinScpPath = this.plugin.CustomConfig.GetString(
                 this.formatter.Format("WinScpPath"),
                 QuickConnectUtils.NormalizeForStorage(QuickConnectUtils.GetWinScpPath() ?? QuickConnectUtils.DefaultWinScpPath));
+            this.WinScpUseJumpHost = this.plugin.CustomConfig.GetBool(
+                this.formatter.Format("WinScpUseJumpHost"),
+                DefaultWinScpUseJumpHost);
+            this.WinScpJumpHostName = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("WinScpJumpHostName"),
+                string.Empty);
+            this.WinScpJumpPort = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("WinScpJumpPort"),
+                DefaultWinScpJumpPort);
+            this.WinScpJumpUsername = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("WinScpJumpUsername"),
+                string.Empty);
+            this.WinScpJumpPrivateKeyPath = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("WinScpJumpPrivateKeyPath"),
+                string.Empty);
+            this.WinScpPassphraseSource = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("WinScpPassphraseSource"),
+                DefaultWinScpPassphraseSource);
+            this.WinScpManualPassphrase = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("WinScpManualPassphrase"),
+                string.Empty);
+            this.WinScpPassphraseEntryUuid = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("WinScpPassphraseEntryUuid"),
+                string.Empty);
+            this.WinScpPassphraseFieldName = this.plugin.CustomConfig.GetString(
+                this.formatter.Format("WinScpPassphraseFieldName"),
+                DefaultWinScpPassphraseFieldName);
             this.PsPasswdPath = this.plugin.CustomConfig.GetString(
                 this.formatter.Format("PsPasswdPath"),
                 QuickConnectUtils.NormalizeForStorage(QuickConnectUtils.GetPsPasswdPath() ?? string.Empty));
@@ -96,6 +127,15 @@ namespace QuickConnectPlugin {
             this.plugin.CustomConfig.SetBool(this.formatter.Format("AddChangePasswordMenuItem"), this.AddChangePasswordMenuItem);
             this.plugin.CustomConfig.SetString(this.formatter.Format("SSHClientPath"), this.PuttyPath);
             this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpPath"), this.WinScpPath);
+            this.plugin.CustomConfig.SetBool(this.formatter.Format("WinScpUseJumpHost"), this.WinScpUseJumpHost);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpJumpHostName"), this.WinScpJumpHostName);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpJumpPort"), this.WinScpJumpPort);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpJumpUsername"), this.WinScpJumpUsername);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpJumpPrivateKeyPath"), this.WinScpJumpPrivateKeyPath);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpPassphraseSource"), this.WinScpPassphraseSource);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpManualPassphrase"), this.WinScpManualPassphrase);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpPassphraseEntryUuid"), this.WinScpPassphraseEntryUuid);
+            this.plugin.CustomConfig.SetString(this.formatter.Format("WinScpPassphraseFieldName"), this.WinScpPassphraseFieldName);
             this.plugin.CustomConfig.SetString(this.formatter.Format("PsPasswdPath"), this.PsPasswdPath);
             this.plugin.CustomConfig.SetString(this.formatter.Format("SshConnectionType"), this.SshConnectionType);
             this.plugin.CustomConfig.SetBool(this.formatter.Format("ShowAllSshConnectionTypes"), this.ShowAllSshConnectionTypes);

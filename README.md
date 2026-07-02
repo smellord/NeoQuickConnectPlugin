@@ -19,6 +19,10 @@ This fork is based on upstream QuickConnectPlugin `0.6.1` and keeps the original
   - Optional global command that runs after SSH login for PuTTY, Terminal (SSH), and Terminal (plink).
   - Useful for priming sudo with `sudo -v; exec bash -l`.
   - Entry-specific `command:` values in Additional options override the global startup command.
+- WinSCP jump-host beta:
+  - Optional WinSCP tunnel settings for SFTP/SCP connections through a configured SSH jump host.
+  - Supports a global `.ppk` key fallback and WinSCP raw tunnel settings.
+  - Supports private-key passphrases from the current KeePass entry password, Pageant/prompt, a selected KeePass entry field, or a manual beta setting.
 - Better tool detection:
   - Auto-detect PuTTY, plink, WinSCP, Windows Terminal, and PsPasswd.
   - Store common tool paths with environment variables where possible.
@@ -106,6 +110,27 @@ sudo -v; exec bash -l
 This asks once for the sudo password and then leaves you in a normal login shell. It does not bypass sudo password policy; it only starts the command for you.
 
 The startup command applies to **Terminal (SSH)**, **Terminal (plink)**, and **PuTTY**. It does not affect WinSCP. If a KeePass entry has its own Additional options value such as `command:...`, that entry command takes priority over the global startup command.
+
+## WinSCP Jump Host Beta
+
+In **Tools** > **NeoQuickConnect** > **Options** > **General**, the WinSCP section can enable **Use jump host** and open **Jump host...** to configure:
+
+- jump host name, port, and username,
+- a WinSCP/PuTTY `.ppk` private key,
+- private-key passphrase source.
+
+The generated WinSCP launch command uses `/rawsettings` with WinSCP tunnel keys such as `Tunnel=1`, `TunnelHostName`, `TunnelPortNumber`, `TunnelUserName`, and `TunnelPublicKeyFile`.
+
+Passphrase sources are:
+
+- current KeePass entry password, preserving older `key:` behavior,
+- Pageant / WinSCP prompt,
+- another KeePass entry field selected by UUID,
+- manual beta setting.
+
+When a KeePass-entry or manual passphrase source is used, NeoQuickConnect writes the passphrase to a short-lived temporary file and launches WinSCP with `/passwordsfromfiles /passphrase="<file>"`, then schedules the file for deletion.
+
+WinSCP requires PuTTY `.ppk` private keys for automated private-key use. Convert OpenSSH keys with WinSCP/PuTTYgen first.
 
 ## Password Changer
 

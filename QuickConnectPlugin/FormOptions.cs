@@ -1,5 +1,6 @@
 using QuickConnectPlugin.PasswordChanger;
 using QuickConnectPlugin.ShortcutKeys;
+using KeePassLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -22,18 +23,36 @@ namespace QuickConnectPlugin
         private const string PsPasswdDownloadUrl = "https://learn.microsoft.com/en-us/sysinternals/downloads/pspasswd";
 
         private readonly IQuickConnectPluginSettings settings;
+        private readonly PwDatabase database;
+        private readonly ICollection<string> dbFields;
 
         private readonly HotKeyControlEx shortcutKeyControlRemoteDesktop;
         private readonly HotKeyControlEx shortcutKeyControlPutty;
         private readonly HotKeyControlEx shortcutKeyControlWinScp;
 
         private bool shortcutKeysSettingWasChanged;
+        private bool winScpUseJumpHost;
+        private string winScpJumpHostName;
+        private string winScpJumpPort;
+        private string winScpJumpUsername;
+        private string winScpJumpPrivateKeyPath;
+        private string winScpPassphraseSource;
+        private string winScpManualPassphrase;
+        private string winScpPassphraseEntryUuid;
+        private string winScpPassphraseFieldName;
 
         public FormOptions(string pluginName, IQuickConnectPluginSettings settings, ICollection<string> dbFields)
+            : this(pluginName, settings, dbFields, null)
+        {
+        }
+
+        public FormOptions(string pluginName, IQuickConnectPluginSettings settings, ICollection<string> dbFields, PwDatabase database)
         {
             InitializeComponent();
 
             this.settings = settings;
+            this.database = database;
+            this.dbFields = dbFields;
 
             this.Text = this.Text.Replace("{title}", pluginName);
 
@@ -53,6 +72,22 @@ namespace QuickConnectPlugin
 
             this.textBoxWinScpPath.Text = settings.WinScpPath;
             this.textBoxWinScpPath.Select(this.textBoxWinScpPath.Text.Length, 0);
+            this.winScpUseJumpHost = settings.WinScpUseJumpHost;
+            this.winScpJumpHostName = settings.WinScpJumpHostName;
+            this.winScpJumpPort = String.IsNullOrEmpty(settings.WinScpJumpPort)
+                ? QuickConnectPluginSettings.DefaultWinScpJumpPort
+                : settings.WinScpJumpPort;
+            this.winScpJumpUsername = settings.WinScpJumpUsername;
+            this.winScpJumpPrivateKeyPath = settings.WinScpJumpPrivateKeyPath;
+            this.winScpPassphraseSource = String.IsNullOrEmpty(settings.WinScpPassphraseSource)
+                ? QuickConnectPluginSettings.DefaultWinScpPassphraseSource
+                : settings.WinScpPassphraseSource;
+            this.winScpManualPassphrase = settings.WinScpManualPassphrase;
+            this.winScpPassphraseEntryUuid = settings.WinScpPassphraseEntryUuid;
+            this.winScpPassphraseFieldName = String.IsNullOrEmpty(settings.WinScpPassphraseFieldName)
+                ? QuickConnectPluginSettings.DefaultWinScpPassphraseFieldName
+                : settings.WinScpPassphraseFieldName;
+            this.checkBoxWinScpUseJumpHost.Checked = this.winScpUseJumpHost;
 
             this.textBoxPsPasswdPath.Text = settings.PsPasswdPath;
             this.textBoxPsPasswdPath.Select(this.textBoxPsPasswdPath.Text.Length, 0);
@@ -187,6 +222,7 @@ namespace QuickConnectPlugin
             this.textBoxSshStartupCommand.TextChanged += new EventHandler(SettingsChanged);
             this.textBoxPuttyPath.TextChanged += new EventHandler(SettingsChanged);
             this.textBoxWinScpPath.TextChanged += new EventHandler(SettingsChanged);
+            this.checkBoxWinScpUseJumpHost.CheckedChanged += new EventHandler(SettingsChanged);
             this.textBoxPsPasswdPath.TextChanged += new EventHandler(SettingsChanged);
             this.comboBoxSshConnectionType.SelectedIndexChanged += new EventHandler(SettingsChanged);
             this.comboBoxWindowsPasswordResetMethod.SelectedIndexChanged += new EventHandler(SettingsChanged);
@@ -233,6 +269,15 @@ namespace QuickConnectPlugin
             this.settings.AddChangePasswordMenuItem = this.checkBoxAddChangePasswordItem.Checked;
             this.settings.PuttyPath = this.textBoxPuttyPath.Text;
             this.settings.WinScpPath = this.textBoxWinScpPath.Text;
+            this.settings.WinScpUseJumpHost = this.checkBoxWinScpUseJumpHost.Checked;
+            this.settings.WinScpJumpHostName = this.winScpJumpHostName;
+            this.settings.WinScpJumpPort = this.winScpJumpPort;
+            this.settings.WinScpJumpUsername = this.winScpJumpUsername;
+            this.settings.WinScpJumpPrivateKeyPath = this.winScpJumpPrivateKeyPath;
+            this.settings.WinScpPassphraseSource = this.winScpPassphraseSource;
+            this.settings.WinScpManualPassphrase = this.winScpManualPassphrase;
+            this.settings.WinScpPassphraseEntryUuid = this.winScpPassphraseEntryUuid;
+            this.settings.WinScpPassphraseFieldName = this.winScpPassphraseFieldName;
             this.settings.PsPasswdPath = this.textBoxPsPasswdPath.Text;
             this.settings.ShowAllSshConnectionTypes = this.checkBoxShowAllSshOptions.Checked;
             this.settings.EnableSshStartupCommand = this.checkBoxEnableSshStartupCommand.Checked;
@@ -394,6 +439,42 @@ namespace QuickConnectPlugin
         private void ButtonInstallWinScp_Click(object sender, EventArgs e)
         {
             InstallWithWinGet("WinSCP.WinSCP", "WinSCP", WinScpDownloadUrl, this.textBoxWinScpPath, QuickConnectUtils.GetWinScpPath, QuickConnectUtils.DefaultWinScpPath);
+        }
+
+        private void ButtonConfigureWinScpJumpHost_Click(object sender, EventArgs e)
+        {
+            using (var form = new FormWinScpJumpHostOptions(CreateWinScpDialogSettings(), this.database, this.dbFields))
+            {
+                if (form.ShowDialog(this) != DialogResult.OK)
+                {
+                    return;
+                }
+
+                this.winScpJumpHostName = form.JumpHostName;
+                this.winScpJumpPort = form.JumpPort;
+                this.winScpJumpUsername = form.JumpUsername;
+                this.winScpJumpPrivateKeyPath = form.JumpPrivateKeyPath;
+                this.winScpPassphraseSource = form.PassphraseSource;
+                this.winScpManualPassphrase = form.ManualPassphrase;
+                this.winScpPassphraseEntryUuid = form.PassphraseEntryUuid;
+                this.winScpPassphraseFieldName = form.PassphraseFieldName;
+                this.SettingsChanged(sender, e);
+            }
+        }
+
+        private IQuickConnectPluginSettings CreateWinScpDialogSettings()
+        {
+            return new WinScpDialogSettings()
+            {
+                WinScpJumpHostName = this.winScpJumpHostName,
+                WinScpJumpPort = this.winScpJumpPort,
+                WinScpJumpUsername = this.winScpJumpUsername,
+                WinScpJumpPrivateKeyPath = this.winScpJumpPrivateKeyPath,
+                WinScpPassphraseSource = this.winScpPassphraseSource,
+                WinScpManualPassphrase = this.winScpManualPassphrase,
+                WinScpPassphraseEntryUuid = this.winScpPassphraseEntryUuid,
+                WinScpPassphraseFieldName = this.winScpPassphraseFieldName
+            };
         }
 
         private void ButtonConfigurePsPasswdPath_Click(object sender, EventArgs e)

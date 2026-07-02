@@ -1,11 +1,17 @@
 # Changelog
 
-## Unreleased
+## 0.8.0-beta.1 - WinSCP jump host beta (2026-07-02)
 
 - Added an optional global SSH startup command for PuTTY, Terminal (SSH), and Terminal (plink).
 - Added a General options checkbox and editable command field, defaulting to `sudo -v; exec bash -l`.
 - Entry-level Additional options `command:...` values take priority over the global startup command.
 - Terminal SSH/plink modes force a TTY when the global startup command is used.
+- Added beta WinSCP jump-host settings under General > WinSCP Settings.
+- Added a WinSCP jump-host configuration dialog for tunnel host, port, username, `.ppk` key, and passphrase source.
+- Added WinSCP `/rawsettings` tunnel generation with `Tunnel`, `TunnelHostName`, `TunnelPortNumber`, `TunnelUserName`, and `TunnelPublicKeyFile`.
+- Added support for WinSCP private-key passphrases from the current entry password, Pageant/prompt, a selected KeePass entry field, or a manual beta setting.
+- Added secure-ish WinSCP `/passwordsfromfiles` handoff for KeePass-entry and manual passphrases using a short-lived temporary file.
+- Updated beta assembly metadata to `0.8.0-beta.1`.
 
 ## 0.7.0 - NeoQuickConnectPlugin fork (2026-04-24)
 
