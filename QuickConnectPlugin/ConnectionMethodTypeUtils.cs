@@ -47,7 +47,9 @@ namespace QuickConnectPlugin {
         }
 
         private static bool useSSH(String description) {
-            if (description.ToLower().Contains("linux") || description.ToLower().Contains("ssh")) {
+            if (description.ToLower().Contains("linux") ||
+                description.ToLower().Contains("ssh") ||
+                description.ToLower().Contains("sftp")) {
                 return true;
             }
             foreach (var name in LinuxDistributionsNames) {

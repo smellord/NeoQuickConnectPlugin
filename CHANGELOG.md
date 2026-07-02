@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0-beta.3 - WinSCP SFTP option parsing (2026-07-02)
+
+- WinSCP protocol selection now supports newline-separated Additional options.
+- Added support for bare protocol values such as `sftp`, in addition to `protocol:sftp`.
+- Entries containing `sftp` in the connection-method text are treated as SSH-capable entries so the WinSCP action appears.
+
 ## 0.8.0-beta.2 - WinSCP root SFTP beta (2026-07-02)
 
 - Added an optional WinSCP SFTP sudo-server setting for root-level SFTP sessions.

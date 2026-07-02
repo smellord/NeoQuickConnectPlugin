@@ -1,4 +1,4 @@
-﻿using QuickConnectPlugin.WinScp;
+using QuickConnectPlugin.WinScp;
 using System;
 
 namespace QuickConnectPlugin
@@ -45,25 +45,29 @@ namespace QuickConnectPlugin
                 return false;
             }
 
-            string[] tokens = str.Split(';');
+            string[] tokens = str.Split(new[] { ';', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var token in tokens)
             {
-                if (token.Trim().StartsWith("protocol"))
+                var trimmedToken = token.Trim();
+                var protocolString = trimmedToken;
+
+                if (trimmedToken.StartsWith("protocol", StringComparison.OrdinalIgnoreCase) && trimmedToken.Contains(":"))
                 {
-                    var protocolString = token.Substring(token.IndexOf(':') + 1).Trim().Trim('\"');
-                    Protocol protocol;
+                    protocolString = trimmedToken.Substring(trimmedToken.IndexOf(':') + 1).Trim().Trim('\"');
+                }
 
-                    if (Enum.TryParse(protocolString, true, out protocol))
+                Protocol protocol;
+
+                if (Enum.TryParse(protocolString, true, out protocol))
+                {
+                    if (options == null)
                     {
-                        if (options == null)
-                        {
-                            options = new WinScpOptions();
-                        }
-
-                        options.Protocol = protocol;
-                        return true;
+                        options = new WinScpOptions();
                     }
+
+                    options.Protocol = protocol;
+                    return true;
                 }
             }
 

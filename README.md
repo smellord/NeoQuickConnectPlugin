@@ -97,8 +97,9 @@ If KeePass previously tried to load a broken build, open **Tools** > **Plugins**
 - Connection method text determines which actions are shown for an entry:
   - `rdp` or `windows`: Remote Desktop actions.
   - `esxi` or `vcenter`: vSphere Client action.
-  - `ssh`, `telnet`, `linux`, or known Linux distribution names: PuTTY, Windows Terminal SSH/plink, and WinSCP actions depending on settings.
+  - `ssh`, `sftp`, `telnet`, `linux`, or known Linux distribution names: PuTTY, Windows Terminal SSH/plink, and WinSCP actions depending on settings.
 - Additional options can define session, port, key file, command, and WinSCP protocol values.
+- WinSCP protocol can be set with `protocol:sftp` or simply `sftp`. Options can be separated with semicolons or new lines.
 
 ## SSH Startup Command
 

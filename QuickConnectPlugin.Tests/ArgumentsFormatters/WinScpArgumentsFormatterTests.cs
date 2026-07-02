@@ -51,6 +51,21 @@ namespace QuickConnectPlugin.Tests.ArgumentsFormatters
         }
 
         [Test]
+        public void FormatWithBareSftpProtocolOnSeparateLine()
+        {
+            InMemoryHostPwEntry pwEntry = new InMemoryHostPwEntry()
+            {
+                Username = "root",
+                Password = "12345678",
+                IPAddress = "127.0.0.1",
+                AdditionalOptions = "Server notes\r\nSSH\r\nsftp"
+            };
+
+            WinScpArgumentsFormatter argumentsFormatter = new WinScpArgumentsFormatter("WinSCP.exe");
+            Assert.AreEqual("\"WinSCP.exe\" sftp://root:\"12345678\"@127.0.0.1", argumentsFormatter.Format(pwEntry));
+        }
+
+        [Test]
         public void FormatWithKeyFile()
         {
             InMemoryHostPwEntry pwEntry = new InMemoryHostPwEntry()
